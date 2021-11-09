@@ -38,11 +38,11 @@ int main ()
         sleep(10);    
     }
 
-    gst_object_unref (bus);
+    // gst_object_unref (bus);
     gst_element_set_state (pipeline, GST_STATE_NULL);
     gst_object_unref (pipeline);
 
-    gst_object_unref (bus1);
+    // gst_object_unref (bus1);
     gst_element_set_state (pipeline1, GST_STATE_NULL);
     gst_object_unref (pipeline1);
 

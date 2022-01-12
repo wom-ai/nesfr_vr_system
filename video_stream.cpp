@@ -10,14 +10,19 @@ int main ()
     gst_init (NULL, NULL);
 
     GstElement *pipeline = gst_parse_launch
-      ("v4l2src device=/dev/video2 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10000", &error);
+      ("v4l2src device=/dev/video5 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10000", &error);
 
     GstElement *pipeline1 = gst_parse_launch
-      ("v4l2src device=/dev/video1 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10001", &error1);
+      ("v4l2src device=/dev/video2 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10001", &error1);
     
     GstElement *pipeline2 = gst_parse_launch
-      ("v4l2src device=/dev/video0 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10002", &error2);
+      ("v4l2src device=/dev/video0 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10003", &error2);
     
+
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+    gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+
     if (error != NULL) {
         g_error("Couldn't launch the pipeline");
         return -1;
@@ -33,8 +38,7 @@ int main ()
         return -1;
     }
 
-    gst_element_set_state(pipeline, GST_STATE_PLAYING);
-    gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+
 
     // GstBus *bus = gst_element_get_bus (pipeline);
     // GstBus *bus1 = gst_element_get_bus (pipeline1);

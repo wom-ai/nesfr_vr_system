@@ -1,5 +1,8 @@
 #include <gst/gst.h>
 #include <unistd.h>
+#include <string>
+
+using namespace std;
 
 int main ()
 {   
@@ -9,14 +12,22 @@ int main ()
 
     gst_init (NULL, NULL);
 
-    GstElement *pipeline = gst_parse_launch
-      ("v4l2src device=/dev/video5 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10000", &error);
+    //put the headset's ip here
+    string headset_ip = "192.168.0.230";
 
+    //change /dev/video# to the correct numbers
+
+    // one eye of the stereo camera
+    GstElement *pipeline = gst_parse_launch
+      (("v4l2src device=/dev/video4 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error); 
+
+    // one eye of the stereo camera
     GstElement *pipeline1 = gst_parse_launch
-      ("v4l2src device=/dev/video2 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10001", &error1);
+      (("v4l2src device=/dev/video2 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
     
+    //main camera
     GstElement *pipeline2 = gst_parse_launch
-      ("v4l2src device=/dev/video0 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=192.168.0.230 port=10003", &error2);
+      (("v4l2src device=/dev/video0 ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
     
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);

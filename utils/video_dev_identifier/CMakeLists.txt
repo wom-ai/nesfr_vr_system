@@ -26,8 +26,3 @@ add_executable(${PROJECT_NAME} video_dev_identifier.cpp)
 #linking Gstreamer library with target executable
 target_link_libraries(${PROJECT_NAME} ${LIBV4L2_LIBRARIES})
 
-
-add_executable(test_app test.cpp)
-
-#linking Gstreamer library with target executable
-target_link_libraries(test_app ${LIBV4L2_LIBRARIES})

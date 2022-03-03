@@ -8,7 +8,7 @@ find_package(PkgConfig) #finding pkg-config is a helper tool
 set (CMAKE_CXX_FLAGS "-lstdc++fs -fpermissive")
 
 #using pkg-config to getting Gstreamer
-pkg_check_modules(GSTREAMER REQUIRED gstreamer-app-1.0 gstreamer-1.0)
+pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 
 
 #including GStreamer header files directory

@@ -1,0 +1,4 @@
+#ifndef VIDEO_STREAM_HPP
+#define VIDEO_STREAM_HPP
+
+#endif //VIDEO_STREAM_HPP

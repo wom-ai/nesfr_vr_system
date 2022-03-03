@@ -13,16 +13,17 @@ pkg_check_modules(GSTREAMER REQUIRED gstreamer-app-1.0 gstreamer-1.0)
 
 #including GStreamer header files directory
 include_directories(
-        ${GSTREAMER_INCLUDE_DIRS}
+    ./include
+    ${GSTREAMER_INCLUDE_DIRS}
 )
 
 #linking GStreamer library directory
 link_directories(
-        ${GSTREAMER_LIBRARY_DIRS}
+    ${GSTREAMER_LIBRARY_DIRS}
 )
 
 #building target executable
-add_executable(${PROJECT_NAME} video_stream.cpp)
+add_executable(${PROJECT_NAME} src/video_stream.cpp)
 
 #linking Gstreamer library with target executable
 target_link_libraries(${PROJECT_NAME} ${GSTREAMER_LIBRARIES})

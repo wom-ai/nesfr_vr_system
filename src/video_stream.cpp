@@ -11,6 +11,8 @@
 #include <map>
 #include <linux/videodev2.h>
 
+#include "video_stream.hpp"
+
 using namespace std;
 
 using dev_vec = std::vector<std::string>;

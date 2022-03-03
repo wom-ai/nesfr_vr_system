@@ -192,7 +192,7 @@ static bool find_dev_file_by_str(const string &id_str, string &dev_file)
     printf("find_dev_file_by_str((%s))\n", id_str.c_str());
     bool ret = false;
     for (const auto &file_card : file_card_map) {
-        printf("(%s)\n{%s)\n", id_str.c_str(), file_card.second.c_str());
+        //printf("(%s)\n{%s)\n", id_str.c_str(), file_card.second.c_str());
         if (file_card.second.compare(0, id_str.size(), id_str) == 0)
         {
             dev_file = file_card.first;

@@ -18,6 +18,15 @@ using namespace std;
 using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
 
+static const string main_camera_card_str = "USB Video: USB Video";
+static const string stereo_camera_left_str = "Stereo Vision 1: Stereo Vision ";
+static const string stereo_camera_right_str = "Stereo Vision 2: Stereo Vision ";
+
+// Headset A
+static const string headset_A_mac_addr = "2c:26:17:eb:ae:28";
+// Headset B 
+static const string headset_B_mac_addr = "2c:26:17:e9:08:3e";
+
 static dev_map file_card_map;
 
 static const char *prefixes[] = {
@@ -83,12 +92,12 @@ static void init_dev_files(void)
         perror ("Couldn't open the directory");
         return;
     }
+
     while ((ep = readdir(dp)))
         if (is_v4l_dev(ep->d_name))
         {
             
             files.push_back(std::string("/dev/") + ep->d_name);
-            printf("%s%s\n", "/dev/", ep->d_name);
         }
     closedir(dp);
 
@@ -125,7 +134,9 @@ static void init_dev_files(void)
 
     std::sort(files.begin(), files.end(), sort_on_device_name);
 
+    printf("-[v4l_devs]----------------------------------\n");
     for (const auto &file : files) {
+        printf("  %s\n", file.c_str());
         int fd = open(file.c_str(), O_RDWR);
         std::string bus_info;
         std::string card;
@@ -144,17 +155,18 @@ static void init_dev_files(void)
             continue;
         file_card_map[file.c_str()] = card;
     }
+    printf("--------------------------------------------\n");
 }
 
 static bool find_dev_file_by_str(const string &id_str, string &dev_file)
 {
-    printf("find_dev_file_by_str((%s), (%s))\n", id_str.c_str(), dev_file.c_str());
+    printf("find_dev_file_by_str((%s))\n", id_str.c_str());
     bool ret = false;
     for (const auto &file_card : file_card_map) {
         if (id_str.compare(file_card.second) == 0)
         {
             dev_file = file_card.first;
-            printf("\t(%s) found in (%s)\n", file_card.second.c_str(), file_card.first.c_str());
+            printf("  (%s) found in (%s)\n", file_card.second.c_str(), file_card.first.c_str());
             ret = true;
             break;
         }
@@ -163,43 +175,39 @@ static bool find_dev_file_by_str(const string &id_str, string &dev_file)
     return ret;
 }
 
+static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
+{
+    bool ret = false;
+    return ret;
+}
+
 int main ()
 {
-    string main_camera_card_str = "USB Video: USB Video";
-    string stereo_camera_left_str = "Stereo Vision 1: Stereo Vision ";
-    string stereo_camera_right_str = "Stereo Vision 2: Stereo Vision ";
-
     string main_camera_dev_file;
     string stereo_camera_left_dev_file;
     string stereo_camera_right_dev_file;
 
     init_dev_files();
 
-    if (find_dev_file_by_str(main_camera_card_str, main_camera_dev_file))
-    {
-    }
-    else
-    {
-        perror ("Couldn't open Main Camera");
-        return;
+    if (find_dev_file_by_str(main_camera_card_str, main_camera_dev_file)) {
+        printf("Main Camera (%s)\n", main_camera_dev_file.c_str());
+    } else {
+        fprintf(stderr, "Couldn't open Main Camera\n");
+        return -1;
     }
 
-    if (find_dev_file_by_str(stereo_camera_left_str, stereo_camera_left_dev_file))
-    {
-    }
-    else
-    {
-        perror ("Couldn't open Stereo Camera (Left)");
-        return;
+    if (find_dev_file_by_str(stereo_camera_left_str, stereo_camera_left_dev_file)) {
+        printf("Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
+    } else {
+        fprintf(stderr, "Couldn't open Stereo Camera (Left)\n");
+        return -1;
     }
 
-    if (find_dev_file_by_str(stereo_camera_right_str, stereo_camera_right_dev_file))
-    {
-    }
-    else
-    {
-        perror ("Couldn't open Stereo Camera (Right)");
-        return;
+    if (find_dev_file_by_str(stereo_camera_right_str, stereo_camera_right_dev_file)) {
+        printf("Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
+    } else {
+        fprintf(stderr, "Couldn't open Stereo Camera (Right)\n");
+        return -1;
     }
 
     GError *error = NULL;
@@ -255,7 +263,11 @@ int main ()
     // gst_bus_pop_filtered (bus1, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
 
     while (true) {
-        sleep(10);    
+        try {
+            sleep(10);
+        } catch (std::exception &e) {
+            fprintf(stderr, "Error: %s\n", e.what());
+        }
     }
 
     // gst_object_unref (bus);
@@ -268,6 +280,8 @@ int main ()
 
     gst_element_set_state (pipeline2, GST_STATE_NULL);
     gst_object_unref (pipeline2);
+
+    printf("End properly\n");
 
     return 0;
 }

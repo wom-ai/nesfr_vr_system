@@ -13,6 +13,8 @@
 
 #include "video_stream.hpp"
 
+#include <csignal>
+
 using namespace std;
 
 using dev_vec = std::vector<std::string>;
@@ -39,6 +41,33 @@ static const char *prefixes[] = {
 //    "media",
     nullptr
 };
+
+
+class InterruptException : public std::exception
+{
+public:
+    InterruptException(int s) : S(s) {}
+    int S;
+};
+
+
+void signal_handler(int s)
+{
+    throw InterruptException(s);
+}
+
+void init_signal(void)
+{
+#if 0
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = signal_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, NULL);
+#else
+    std::signal(SIGINT, signal_handler);
+#endif
+}
 
 static bool is_v4l_dev(const char *name)
 {
@@ -183,6 +212,8 @@ static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
 
 int main ()
 {
+    init_signal();
+
     string main_camera_dev_file;
     string stereo_camera_left_dev_file;
     string stereo_camera_right_dev_file;
@@ -262,13 +293,18 @@ int main ()
     // gst_bus_pop_filtered (bus, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
     // gst_bus_pop_filtered (bus1, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
 
-    while (true) {
-        try {
-            sleep(10);
-        } catch (std::exception &e) {
-            fprintf(stderr, "Error: %s\n", e.what());
+    try {
+        while (true) {
+                sleep(10);
         }
+    } catch (InterruptException &e) {
+        fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());
+    } catch (std::exception &e) {
+        fprintf(stderr, "[ERROR]: %s\n", e.what());
+        return -1;
     }
+
+    printf("End process...\n");
 
     // gst_object_unref (bus);
     gst_element_set_state (pipeline, GST_STATE_NULL);

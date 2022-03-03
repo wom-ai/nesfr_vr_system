@@ -20,9 +20,9 @@ using namespace std;
 using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
 
-static const string main_camera_card_str = "USB Video: USB Video";
-static const string stereo_camera_left_str = "Stereo Vision 1: Stereo Vision ";
-static const string stereo_camera_right_str = "Stereo Vision 2: Stereo Vision ";
+static const string main_camera_card_str = "USB Video";
+static const string stereo_camera_left_str = "Stereo Vision 1";
+static const string stereo_camera_right_str = "Stereo Vision 2";
 
 // Headset A
 static const string headset_A_mac_addr = "2c:26:17:eb:ae:28";
@@ -192,7 +192,7 @@ static bool find_dev_file_by_str(const string &id_str, string &dev_file)
     printf("find_dev_file_by_str((%s))\n", id_str.c_str());
     bool ret = false;
     for (const auto &file_card : file_card_map) {
-        if (id_str.compare(file_card.second) == 0)
+        if (id_str.compare(0, id_str.size(), file_card.second) == 0)
         {
             dev_file = file_card.first;
             printf("  (%s) found in (%s)\n", file_card.second.c_str(), file_card.first.c_str());

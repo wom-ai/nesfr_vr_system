@@ -325,27 +325,9 @@ int main ()
 
     init_dev_files();
 
-    if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
-        printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
-    } else {
-        fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
-        return -1;
-    }
-
-    if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
-        printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
-    } else {
-        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
-        return -1;
-    }
-
-    if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
-        printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
-    } else {
-        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
-        return -1;
-    }
-
+    GstElement *pipeline = nullptr;
+    GstElement *pipeline1 = nullptr;
+    GstElement *pipeline2 = nullptr;
     GError *error = NULL;
     GError *error1 = NULL;
     GError *error2 = NULL;
@@ -355,21 +337,37 @@ int main ()
     //change /dev/video# to the correct numbers
 
     // one eye of the stereo camera
-    GstElement *pipeline = gst_parse_launch
-      (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
+    if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
+        printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
+        pipeline = gst_parse_launch
+          (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
+        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    } else {
+        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
+    }
+
 
     // one eye of the stereo camera
-    GstElement *pipeline1 = gst_parse_launch
-      (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
+    if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
+        printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
+        pipeline1 = gst_parse_launch
+          (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
+        gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+    } else {
+        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
+    }
+
 
     //main camera
-    GstElement *pipeline2 = gst_parse_launch
-      (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
+    if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
+        printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
+        pipeline2 = gst_parse_launch
+          (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
+        gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+    } else {
+        fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
+    }
 
-
-    gst_element_set_state(pipeline, GST_STATE_PLAYING);
-    gst_element_set_state(pipeline1, GST_STATE_PLAYING);
-    gst_element_set_state(pipeline2, GST_STATE_PLAYING);
 
     if (error != NULL) {
         g_error("Couldn't launch the pipeline");
@@ -409,15 +407,21 @@ int main ()
     printf("End process...\n");
 
     // gst_object_unref (bus);
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (pipeline);
+    if (pipeline) {
+        gst_element_set_state (pipeline, GST_STATE_NULL);
+        gst_object_unref (pipeline);
+    }
 
     // gst_object_unref (bus1);
-    gst_element_set_state (pipeline1, GST_STATE_NULL);
-    gst_object_unref (pipeline1);
+    if (pipeline1) {
+        gst_element_set_state (pipeline1, GST_STATE_NULL);
+        gst_object_unref (pipeline1);
+    }
 
-    gst_element_set_state (pipeline2, GST_STATE_NULL);
-    gst_object_unref (pipeline2);
+    if (pipeline2) {
+        gst_element_set_state (pipeline2, GST_STATE_NULL);
+        gst_object_unref (pipeline2);
+    }
 
     printf("End properly\n");
 

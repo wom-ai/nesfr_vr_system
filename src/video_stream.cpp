@@ -20,9 +20,9 @@ using namespace std;
 using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
 
-static const string main_camera_card_str = "USB Video";
-static const string stereo_camera_left_str = "Stereo Vision 1";
-static const string stereo_camera_right_str = "Stereo Vision 2";
+static const std::vector<string> main_camera_card_strs = {"USB Video", "USB Video: USB Video", "Video Capture 3", };
+static const std::vector<string> stereo_camera_left_strs = {"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",};
+static const std::vector<string> stereo_camera_right_strs = {"Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5",};
 
 // Headset A
 static const string headset_A_mac_addr = "2c:26:17:eb:ae:28";
@@ -165,7 +165,6 @@ static void init_dev_files(void)
 
     printf("-[v4l_devs]----------------------------------\n");
     for (const auto &file : files) {
-        printf("  %s\n", file.c_str());
         int fd = open(file.c_str(), O_RDWR);
         std::string bus_info;
         std::string card;
@@ -182,24 +181,78 @@ static void init_dev_files(void)
 
         if (err)
             continue;
+        if (!(vcap.device_caps & V4L2_CAP_VIDEO_CAPTURE))
+            continue;
+        printf("  %s\n", file.c_str());
         file_card_map[file.c_str()] = card;
     }
     printf("--------------------------------------------\n");
 }
 
-static bool find_dev_file_by_str(const string &id_str, string &dev_file)
+static bool find_dev_file_by_strs(const std::vector<string> &id_strs, string &dev_file)
 {
-    printf("find_dev_file_by_str((%s))\n", id_str.c_str());
+    string temp = "";
+    for (const auto id_str : id_strs) {
+        temp += "<";
+        temp += id_str;
+        temp += ">,";
+    }
+    printf("find_dev_file_by_strs(%s)\n", temp.c_str());
+
     bool ret = false;
     for (const auto &file_card : file_card_map) {
         //printf("(%s)\n{%s)\n", id_str.c_str(), file_card.second.c_str());
-        if (file_card.second.compare(0, id_str.size(), id_str) == 0)
+        bool match = false;
+        for (const auto id_str : id_strs)
+            match |= (file_card.second.compare(id_str) == 0);
+        if (match)
         {
             dev_file = file_card.first;
             printf("  (%s) found in (%s)\n", file_card.second.c_str(), file_card.first.c_str());
             ret = true;
             break;
         }
+        //printf("(%s):(%s)\n", file_card.first.c_str(), file_card.second.c_str());
+    }
+    return ret;
+}
+
+static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs, string &dev_file)
+{
+    string temp = "";
+    for (const auto id_str : id_strs) {
+        temp += "<";
+        temp += id_str;
+        temp += ">,";
+    }
+    printf("find_dev_file_by_strs(%s)\n", temp.c_str());
+
+    printf("\n-[v4l_devs]-------------------------------------\n");
+    for (const auto &file_card : file_card_map)
+        printf("  [%s]:%s\n", file_card.first.c_str(), file_card.second.c_str());
+    printf("------------------------------------------------\n\n");
+
+    bool ret = false;
+    //for (const auto &file_card : file_card_map) {
+    for (auto iter = file_card_map.begin();
+            iter != file_card_map.end(); ) {
+
+        auto file_card = *iter;
+
+        //printf("(%s)\n{%s)\n", id_str.c_str(), file_card.second.c_str());
+        bool match = false;
+        for (const auto id_str : id_strs)
+            match |= (file_card.second.compare(id_str) == 0);
+        if (match)
+        {
+            dev_file = file_card.first;
+            printf("  (%s) found in (%s)\n", file_card.second.c_str(), file_card.first.c_str());
+            ret = true;
+            file_card_map.erase(iter);
+            break;
+        }
+        else
+            iter++;
         //printf("(%s):(%s)\n", file_card.first.c_str(), file_card.second.c_str());
     }
     return ret;
@@ -221,22 +274,22 @@ int main ()
 
     init_dev_files();
 
-    if (find_dev_file_by_str(main_camera_card_str, main_camera_dev_file)) {
-        printf("Main Camera (%s)\n", main_camera_dev_file.c_str());
+    if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
+        printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
     } else {
         fprintf(stderr, "Couldn't open Main Camera\n");
         return -1;
     }
 
-    if (find_dev_file_by_str(stereo_camera_left_str, stereo_camera_left_dev_file)) {
-        printf("Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
+    if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
+        printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
     } else {
         fprintf(stderr, "Couldn't open Stereo Camera (Left)\n");
         return -1;
     }
 
-    if (find_dev_file_by_str(stereo_camera_right_str, stereo_camera_right_dev_file)) {
-        printf("Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
+    if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
+        printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
     } else {
         fprintf(stderr, "Couldn't open Stereo Camera (Right)\n");
         return -1;

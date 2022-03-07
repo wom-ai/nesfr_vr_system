@@ -125,7 +125,6 @@ static void init_dev_files(void)
     while ((ep = readdir(dp)))
         if (is_v4l_dev(ep->d_name))
         {
-            
             files.push_back(std::string("/dev/") + ep->d_name);
         }
     closedir(dp);
@@ -189,6 +188,7 @@ static void init_dev_files(void)
     printf("--------------------------------------------\n");
 }
 
+/*
 static bool find_dev_file_by_strs(const std::vector<string> &id_strs, string &dev_file)
 {
     string temp = "";
@@ -216,6 +216,7 @@ static bool find_dev_file_by_strs(const std::vector<string> &id_strs, string &de
     }
     return ret;
 }
+*/
 
 static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs, string &dev_file)
 {
@@ -258,9 +259,50 @@ static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs,
     return ret;
 }
 
+/*
+ * reference
+ *   - https://www.cplusplus.com/reference/cstring/strtok/
+ */
 static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
 {
     bool ret = false;
+    FILE *pin = popen("arp -n","r");
+    if (!pin)
+        return false;
+
+    std::vector<string> lines;
+    while (!feof(pin)) {
+        char *line = nullptr;
+        size_t len = 0;
+        ssize_t read = getline(&line, &len, pin);
+        if (read)
+            lines.push_back(line);
+    }
+    pclose(pin);
+
+    // parse lines
+    for (const auto line : lines) {
+        char *pch;
+        std::vector<string> tokens;
+        pch = strtok ((char *)line.c_str()," ,-\n");
+        while (pch != NULL)
+        {
+            printf ("(%s) ",pch);
+            tokens.push_back(pch);
+            pch = strtok (NULL, " ,-\n");
+        }
+
+//        if (tokens.size() > 0)
+//            printf("%s\n", tokens[0].c_str());
+//
+        if (tokens.size() == 5 && tokens[2].compare(headset_A_mac_addr) == 0) {
+            ip = tokens[0];
+            printf("- found VR Headset:%s", ip.c_str());
+            ret = true;
+        }
+        printf("\n");
+    }
+
     return ret;
 }
 
@@ -272,26 +314,35 @@ int main ()
     string stereo_camera_left_dev_file;
     string stereo_camera_right_dev_file;
 
+    //put the headset's ip here
+    string headset_ip = "192.168.0.XXX";
+
+    if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+        fprintf(stderr, "[ERROR] Couldn't file VR Headset.\n");
+        return 0;
+    }
+    printf(">> VR Headset ip: %s\n", headset_ip.c_str());
+
     init_dev_files();
 
     if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
     } else {
-        fprintf(stderr, "Couldn't open Main Camera\n");
+        fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
         return -1;
     }
 
     if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
         printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
     } else {
-        fprintf(stderr, "Couldn't open Stereo Camera (Left)\n");
+        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
         return -1;
     }
 
     if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
         printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
     } else {
-        fprintf(stderr, "Couldn't open Stereo Camera (Right)\n");
+        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
         return -1;
     }
 
@@ -301,23 +352,20 @@ int main ()
 
     gst_init (NULL, NULL);
 
-    //put the headset's ip here
-    string headset_ip = "192.168.0.230";
-
     //change /dev/video# to the correct numbers
 
     // one eye of the stereo camera
     GstElement *pipeline = gst_parse_launch
-      (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error); 
+      (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
 
     // one eye of the stereo camera
     GstElement *pipeline1 = gst_parse_launch
       (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
-    
+
     //main camera
     GstElement *pipeline2 = gst_parse_launch
       (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
-    
+
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
     gst_element_set_state(pipeline1, GST_STATE_PLAYING);

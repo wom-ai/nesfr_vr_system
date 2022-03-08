@@ -27,12 +27,12 @@ static const int stereo_video_height = 720;
 //static const int stereo_video_width = 640;
 //static const int stereo_video_height = 480;
 
-static const int main_video_width = 1920;
-static const int main_video_height = 1080;
+//static const int main_video_width = 1920;
+//static const int main_video_height = 1080;
 //static const int main_video_width = 1280;
 //static const int main_video_height = 720;
-//static const int main_video_width = 640;
-//static const int main_video_height = 480;
+static const int main_video_width = 640;
+static const int main_video_height = 480;
 
 static const std::vector<string> main_camera_card_strs = {"USB Video", "USB Video: USB Video", "Video Capture 3", };
 static const std::vector<string> stereo_camera_left_strs = {"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",};

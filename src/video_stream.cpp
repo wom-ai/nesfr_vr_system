@@ -20,6 +20,20 @@ using namespace std;
 using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
 
+//static const int stereo_video_width = 1920;
+//static const int stereo_video_height = 1080;
+static const int stereo_video_width = 1280;
+static const int stereo_video_height = 720;
+//static const int stereo_video_width = 640;
+//static const int stereo_video_height = 480;
+
+static const int main_video_width = 1920;
+static const int main_video_height = 1080;
+//static const int main_video_width = 1280;
+//static const int main_video_height = 720;
+//static const int main_video_width = 640;
+//static const int main_video_height = 480;
+
 static const std::vector<string> main_camera_card_strs = {"USB Video", "USB Video: USB Video", "Video Capture 3", };
 static const std::vector<string> stereo_camera_left_strs = {"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",};
 static const std::vector<string> stereo_camera_right_strs = {"Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5",};
@@ -334,13 +348,17 @@ int main ()
 
     gst_init (NULL, NULL);
 
-    //change /dev/video# to the correct numbers
+    size_t size = 128;
+    char buf[size];
+
+    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=30/1 ", stereo_video_width, stereo_video_height);
+    string stereo_video_conf_str = buf;
 
     // one eye of the stereo camera
     if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
         printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
         pipeline = gst_parse_launch
-          (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
+          (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, " + stereo_video_conf_str+ "  ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
@@ -351,18 +369,20 @@ int main ()
     if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
         printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
         pipeline1 = gst_parse_launch
-          (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=30/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
+          (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
         gst_element_set_state(pipeline1, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
     }
 
+    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=60/1 ", main_video_width, main_video_height);
+    string main_video_conf_str = buf;
 
     //main camera
     if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
         pipeline2 = gst_parse_launch
-          (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, width=1920, height=1080, pixel-aspect-ratio=1/1, framerate=60/1 ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
+          (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
         gst_element_set_state(pipeline2, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");

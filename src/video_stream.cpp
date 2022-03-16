@@ -15,17 +15,23 @@
 
 #include <csignal>
 
+#include <unistd.h>
+
 using namespace std;
 
 using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
 
-//static const int stereo_video_width = 1920;
-//static const int stereo_video_height = 1080;
-static const int stereo_video_width = 1280;
-static const int stereo_video_height = 720;
-//static const int stereo_video_width = 640;
-//static const int stereo_video_height = 480;
+static bool is_stereo = true;
+//static int stereo_video_width = 1920;
+//static int stereo_video_height = 1080;
+#if 1
+static int stereo_video_width = 1280;
+static int stereo_video_height = 720;
+#else
+static int stereo_video_width = 640;
+static int stereo_video_height = 480;
+#endif
 
 //static const int main_video_width = 1920;
 //static const int main_video_height = 1080;
@@ -40,7 +46,7 @@ static const std::vector<string> stereo_camera_right_strs = {"Stereo Vision 2", 
 
 // Headset A
 static const string headset_A_mac_addr = "2c:26:17:eb:ae:28";
-// Headset B 
+// Headset B
 static const string headset_B_mac_addr = "2c:26:17:e9:08:3e";
 
 static dev_map file_card_map;
@@ -68,6 +74,88 @@ public:
 void signal_handler(int s)
 {
     throw InterruptException(s);
+}
+
+/*
+ * references
+ *   - https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
+ */
+bool init_options(int argc, char *argv[])
+{
+    printf("=======================================================\n");
+    printf("dims 0: 1920x1080\n");
+    printf("dims 1: 1280x720 (default)\n");
+    printf("dims 2:  640x480\n");
+    printf("=======================================================\n");
+    int c;
+    int dims = 0;
+    while ((c = getopt (argc, argv, "md:")) != -1)
+        switch (c)
+        {
+            case 'a':
+                printf("A\n");
+                break;
+            case 'b':
+                printf("B\n");
+                break;
+            case 'm':
+                is_stereo = false; // mono
+                break;
+            case 'd':
+                printf("dims: %s\n", optarg);
+
+                try
+                {
+                    dims = std::stoi(optarg);
+                }
+                catch(std::invalid_argument const& ex)
+                {
+                    fprintf(stderr, "std::invalid_argument::what(): %s\n", ex.what());
+                    return -1;
+                }
+                catch(std::out_of_range const& ex)
+                {
+                    fprintf(stderr, "std::out_of_range::what(): %s\n", ex.what());
+                    return -1;
+                }
+                switch (dims)
+                {
+                    case 0:
+                        stereo_video_width = 1920;
+                        stereo_video_height = 1080;
+                        break;
+                    case 1:
+                        stereo_video_width = 1280;
+                        stereo_video_height = 720;
+                        break;
+                    case 2:
+                        stereo_video_width = 640;
+                        stereo_video_height = 480;
+                        break;
+                }
+                break;
+            case '?':
+                if (optopt == 'd')
+                    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+                else if (isprint (optopt))
+                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf (stderr,
+                            "Unknown option character `\\x%x'.\n",
+                            optopt);
+                return -1;
+            default:
+                abort ();
+        }
+
+    printf("=======================================================\n");
+    printf(" dimensions: (%dx%d)\n", stereo_video_width, stereo_video_height);
+    printf("=======================================================\n");
+
+    printf("=======================================================\n");
+    printf(" video mode: (%s)\n", is_stereo? "stereo": "mono" );
+    printf("=======================================================\n");
+    return 0;
 }
 
 void init_signal(void)
@@ -320,8 +408,11 @@ static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
     return ret;
 }
 
-int main ()
+int main (int argc, char *argv[])
 {
+    if(init_options(argc, argv))
+        return -1;
+
     init_signal();
 
     string main_camera_dev_file;
@@ -409,7 +500,6 @@ int main ()
     // GstBus *bus = gst_element_get_bus (pipeline);
     // GstBus *bus1 = gst_element_get_bus (pipeline1);
 
-    
     // gst_bus_pop_filtered (bus, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
     // gst_bus_pop_filtered (bus1, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
 

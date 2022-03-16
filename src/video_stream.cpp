@@ -368,7 +368,22 @@ static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs,
 static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
 {
     bool ret = false;
-    FILE *pin = popen("arp -n","r");
+    FILE *pin = nullptr;
+/*
+    pin = popen("nmap -sn 192.168.0.0/24","r");
+    if (!pin)
+        return false;
+    else {
+        while (!feof(pin)) {
+            char *line = nullptr;
+            size_t len = 0;
+            ssize_t read = getline(&line, &len, pin);
+            printf("%s", line);
+        }
+        pclose(pin);
+    }
+*/
+    pin = popen("arp -n","r");
     if (!pin)
         return false;
 

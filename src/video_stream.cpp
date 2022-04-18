@@ -369,20 +369,6 @@ static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
 {
     bool ret = false;
     FILE *pin = nullptr;
-/*
-    pin = popen("nmap -sn 192.168.0.0/24","r");
-    if (!pin)
-        return false;
-    else {
-        while (!feof(pin)) {
-            char *line = nullptr;
-            size_t len = 0;
-            ssize_t read = getline(&line, &len, pin);
-            printf("%s", line);
-        }
-        pclose(pin);
-    }
-*/
     pin = popen("arp -n","r");
     if (!pin)
         return false;
@@ -416,11 +402,30 @@ static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
             ip = tokens[0];
             printf("- found VR Headset:%s", ip.c_str());
             ret = true;
+            break;
         }
         printf("\n");
     }
 
     return ret;
+}
+
+static bool call_nmap(void)
+{
+    FILE *pin = nullptr;
+    pin = popen("nmap -sn 192.168.0.0/24","r");
+    if (!pin)
+        return false;
+    else {
+        while (!feof(pin)) {
+            char *line = nullptr;
+            size_t len = 0;
+            ssize_t read = getline(&line, &len, pin);
+            printf("%s", line);
+        }
+        pclose(pin);
+    }
+    return true;
 }
 
 int main (int argc, char *argv[])
@@ -439,7 +444,15 @@ int main (int argc, char *argv[])
 
     if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
         fprintf(stderr, "[ERROR] Couldn't file VR Headset.\n");
-        return 0;
+
+        if (!call_nmap()) {
+            fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
+            return -1;
+        }
+        if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+            fprintf(stderr, "[ERROR] Couldn't file VR Headset.\n");
+            return -1;
+        }
     }
     printf(">> VR Headset ip: %s\n", headset_ip.c_str());
 

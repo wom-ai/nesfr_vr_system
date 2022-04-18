@@ -470,15 +470,18 @@ int main (int argc, char *argv[])
         fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
     }
 
-
-    // one eye of the stereo camera
-    if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
-        printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
-        pipeline1 = gst_parse_launch
-          (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
-        gst_element_set_state(pipeline1, GST_STATE_PLAYING);
-    } else {
-        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
+    // mono mode
+    if (is_stereo)
+    {
+        // one eye of the stereo camera
+        if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
+            printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
+            pipeline1 = gst_parse_launch
+              (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
+            gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+        } else {
+            fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
+        }
     }
 
     sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=60/1 ", main_video_width, main_video_height);

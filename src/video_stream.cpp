@@ -413,7 +413,7 @@ static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
 static bool call_nmap(void)
 {
     FILE *pin = nullptr;
-    pin = popen("nmap -sn 192.168.0.0/24","r");
+    pin = popen("nmap -sn 192.168.1.0/24","r");
     if (!pin)
         return false;
     else {

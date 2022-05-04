@@ -25,7 +25,7 @@ using dev_map = std::map<std::string, std::string>;
 static bool is_stereo = true;
 //static int stereo_video_width = 1920;
 //static int stereo_video_height = 1080;
-#if 1
+#if 0
 static int stereo_video_width = 1280;
 static int stereo_video_height = 720;
 #else
@@ -84,11 +84,11 @@ bool init_options(int argc, char *argv[])
 {
     printf("=======================================================\n");
     printf("dims 0: 1920x1080\n");
-    printf("dims 1: 1280x720 (default)\n");
-    printf("dims 2:  640x480\n");
+    printf("dims 1: 1280x720\n");
+    printf("dims 2:  640x480 (default)\n");
     printf("=======================================================\n");
     int c;
-    int dims = 0;
+    int dims = 2;
     while ((c = getopt (argc, argv, "md:")) != -1)
         switch (c)
         {
@@ -118,21 +118,6 @@ bool init_options(int argc, char *argv[])
                     fprintf(stderr, "std::out_of_range::what(): %s\n", ex.what());
                     return -1;
                 }
-                switch (dims)
-                {
-                    case 0:
-                        stereo_video_width = 1920;
-                        stereo_video_height = 1080;
-                        break;
-                    case 1:
-                        stereo_video_width = 1280;
-                        stereo_video_height = 720;
-                        break;
-                    case 2:
-                        stereo_video_width = 640;
-                        stereo_video_height = 480;
-                        break;
-                }
                 break;
             case '?':
                 if (optopt == 'd')
@@ -148,8 +133,23 @@ bool init_options(int argc, char *argv[])
                 abort ();
         }
 
+    switch (dims)
+    {
+        case 0:
+            stereo_video_width = 1920;
+            stereo_video_height = 1080;
+            break;
+        case 1:
+            stereo_video_width = 1280;
+            stereo_video_height = 720;
+            break;
+        case 2:
+            stereo_video_width = 640;
+            stereo_video_height = 480;
+            break;
+    }
     printf("=======================================================\n");
-    printf(" dimensions: (%dx%d)\n", stereo_video_width, stereo_video_height);
+    printf(" dimensions: dims %d: %dx%d\n", dims, stereo_video_width, stereo_video_height);
     printf("=======================================================\n");
 
     printf("=======================================================\n");

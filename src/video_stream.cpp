@@ -428,6 +428,76 @@ static bool call_nmap(void)
     return true;
 }
 
+bool set_stereo_camera_left(const string &dev_file)
+{
+    int n;
+    FILE *pin = nullptr;
+    char buffer [128];
+    memset(buffer, 0, sizeof(buffer));
+    n = sprintf (buffer, "v4l2-ctl --device=%s -c white_balance_temperature_auto=1", dev_file.c_str());
+    printf(">> call [%s]\n", buffer);
+    pin = popen("v4l2-ctl --device=/dev/video1 -l","rw");
+    if (!pin)
+        return false;
+    else {
+        while (!feof(pin)) {
+            char *line = nullptr;
+            size_t len = 0;
+            ssize_t read = getline(&line, &len, pin);
+            printf("%s", line);
+        }
+        pclose(pin);
+    }
+    return true;
+}
+
+bool set_stereo_camera(const string &dev_file)
+{
+    int n;
+    FILE *pin = nullptr;
+    char buffer [128];
+    char line[1024];
+    memset(buffer, 0, sizeof(buffer));
+    n = sprintf (buffer, "v4l2-ctl --device=%s -l", dev_file.c_str());
+    printf(">> call [%s]\n", buffer);
+    pin = popen(buffer,"r");
+    if (!pin)
+        return false;
+    else {
+        while (fgets(line, 1024, pin)) {
+            printf(">> %s", line);
+        }
+        pclose(pin);
+    }
+
+    memset(buffer, 0, sizeof(buffer));
+    n = sprintf (buffer, "v4l2-ctl --device=%s -c white_balance_temperature_auto=0", dev_file.c_str());
+    printf(">> call [%s]\n", buffer);
+    pin = popen(buffer,"r");
+    if (!pin)
+        return false;
+    else {
+        while (fgets(line, 1024, pin)) {
+            printf(">> %s", line);
+        }
+        pclose(pin);
+    }
+
+    memset(buffer, 0, sizeof(buffer));
+    n = sprintf (buffer, "v4l2-ctl --device=%s -C white_balance_temperature_auto", dev_file.c_str());
+    printf(">> call [%s]\n", buffer);
+    pin = popen(buffer,"r");
+    if (!pin)
+        return false;
+    else {
+        while (fgets(line, 1024, pin)) {
+            printf(">> %s", line);
+        }
+        pclose(pin);
+    }
+    return true;
+}
+
 int main (int argc, char *argv[])
 {
     if(init_options(argc, argv))
@@ -476,6 +546,11 @@ int main (int argc, char *argv[])
     // one eye of the stereo camera
     if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
         printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
+        if (!set_stereo_camera(stereo_camera_left_dev_file))
+        {
+            fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Left)\n");
+            return -1;
+        }
         pipeline = gst_parse_launch
           (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, " + stereo_video_conf_str+ "  ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
@@ -489,6 +564,11 @@ int main (int argc, char *argv[])
         // one eye of the stereo camera
         if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
             printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
+            if (!set_stereo_camera(stereo_camera_right_dev_file))
+            {
+                fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Right)\n");
+                return -1;
+            }
             pipeline1 = gst_parse_launch
               (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
             gst_element_set_state(pipeline1, GST_STATE_PLAYING);

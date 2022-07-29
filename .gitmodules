@@ -1,0 +1,6 @@
+[submodule "nesfr_vr_video_streamer"]
+	path = nesfr_vr_video_streamer
+	url = git@github.com:wom-ai/nesfr_vr_video_streamer.git
+[submodule "nesfr_vr_ctrl"]
+	path = nesfr_vr_ctrl
+	url = git@github.com:wom-ai/nesfr_vr_ctrl.git

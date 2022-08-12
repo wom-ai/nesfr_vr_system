@@ -531,9 +531,11 @@ int main (int argc, char *argv[])
     GstElement *pipeline = nullptr;
     GstElement *pipeline1 = nullptr;
     GstElement *pipeline2 = nullptr;
+    GstElement *pipeline_audio = nullptr;
     GError *error = NULL;
     GError *error1 = NULL;
     GError *error2 = NULL;
+    GError *error_audio = NULL;
 
     gst_init (NULL, NULL);
 
@@ -590,6 +592,13 @@ int main (int argc, char *argv[])
         fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
     }
 
+    //audio in
+//    pipeline_audio = gst_parse_launch
+//        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! alawenc ! rtpgstpay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+//
+    pipeline_audio = gst_parse_launch
+        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! alawenc ! rtppcmapay !application/x-rtp, payload=8, clock-rate=8000 ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+    gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
 
     if (error != NULL) {
         g_error("Couldn't launch the pipeline");
@@ -606,7 +615,10 @@ int main (int argc, char *argv[])
         return -1;
     }
 
-
+    if (error_audio != NULL) {
+        g_error("Couldn't launch the pipeline_audio");
+        return -1;
+    }
 
     // GstBus *bus = gst_element_get_bus (pipeline);
     // GstBus *bus1 = gst_element_get_bus (pipeline1);

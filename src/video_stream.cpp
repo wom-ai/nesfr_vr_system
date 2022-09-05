@@ -40,7 +40,7 @@ static const int main_video_height = 720;
 //static const int main_video_width = 640;
 //static const int main_video_height = 480;
 
-static const std::vector<string> main_camera_card_strs = {"USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam"};
+static const std::vector<string> main_camera_card_strs = {"USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam", "HD Pro Webcam C920"};
 static const std::vector<string> stereo_camera_left_strs = {"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",};
 static const std::vector<string> stereo_camera_right_strs = {"Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5",};
 
@@ -361,6 +361,48 @@ static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs,
     return ret;
 }
 
+static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs, string &dev_file, string &found_id_str)
+{
+    string temp = "";
+    for (const auto id_str : id_strs) {
+        temp += "<";
+        temp += id_str;
+        temp += ">,";
+    }
+    printf("find_dev_file_by_strs(%s)\n", temp.c_str());
+
+    printf("\n-[v4l_devs]-------------------------------------\n");
+    for (const auto &file_card : file_card_map)
+        printf("  [%s]:%s\n", file_card.first.c_str(), file_card.second.c_str());
+    printf("------------------------------------------------\n\n");
+
+    bool ret = false;
+    //for (const auto &file_card : file_card_map) {
+    for (auto iter = file_card_map.begin();
+            iter != file_card_map.end(); ) {
+
+        auto file_card = *iter;
+
+        //printf("(%s)\n{%s)\n", id_str.c_str(), file_card.second.c_str());
+        bool match = false;
+        for (const auto id_str : id_strs)
+            match |= (file_card.second.compare(id_str) == 0);
+        if (match)
+        {
+            dev_file = file_card.first;
+            printf("  (%s) found in (%s)\n", file_card.second.c_str(), file_card.first.c_str());
+            ret = true;
+            file_card_map.erase(iter);
+            found_id_str = file_card.second.c_str();
+            break;
+        }
+        else
+            iter++;
+        //printf("(%s):(%s)\n", file_card.first.c_str(), file_card.second.c_str());
+    }
+    return ret;
+}
+
 /*
  * reference
  *   - https://www.cplusplus.com/reference/cstring/strtok/
@@ -579,10 +621,11 @@ int main (int argc, char *argv[])
         }
     }
 
+    //main camera
+#if 0
     sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=60/1 ", main_video_width, main_video_height);
     string main_video_conf_str = buf;
 
-    //main camera
     if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
         pipeline2 = gst_parse_launch
@@ -595,9 +638,31 @@ int main (int argc, char *argv[])
     //audio in
 //    pipeline_audio = gst_parse_launch
 //        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! alawenc ! rtpgstpay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
-//
+
+//    pipeline_audio = gst_parse_launch
+//        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! alawenc ! rtppcmapay !application/x-rtp, payload=8, clock-rate=8000 ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+
     pipeline_audio = gst_parse_launch
-        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! alawenc ! rtppcmapay !application/x-rtp, payload=8, clock-rate=8000 ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+
+//    pipeline_audio = gst_parse_launch
+//        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! rtpL8pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+#else
+    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=30/1 ", main_video_width, main_video_height);
+    string main_video_conf_str = buf;
+
+    if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
+        printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
+        pipeline2 = gst_parse_launch
+          (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
+        gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+    } else {
+        fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
+    }
+
+    pipeline_audio = gst_parse_launch
+        (("pulsesrc device=alsa_input.usb-046d_HD_Pro_Webcam_C920_9D5E927F-02.analog-stereo ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+#endif
     gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
 
     if (error != NULL) {
@@ -654,6 +719,11 @@ int main (int argc, char *argv[])
     if (pipeline2) {
         gst_element_set_state (pipeline2, GST_STATE_NULL);
         gst_object_unref (pipeline2);
+    }
+
+    if (pipeline_audio) {
+        gst_element_set_state (pipeline_audio, GST_STATE_NULL);
+        gst_object_unref (pipeline_audio);
     }
 
     printf("End properly\n");

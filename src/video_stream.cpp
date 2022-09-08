@@ -17,6 +17,8 @@
 
 #include <unistd.h>
 
+#include "ctrlclient.hpp"
+
 using namespace std;
 
 using dev_vec = std::vector<std::string>;
@@ -551,6 +553,15 @@ int main (int argc, char *argv[])
     string stereo_camera_left_dev_file;
     string stereo_camera_right_dev_file;
 
+    //set CmdHeader
+    char hostname[16];
+    //get host name
+    memset(hostname, 0x0, sizeof(hostname));
+    gethostname(hostname, sizeof(hostname));
+    printf("=======================================================\n");
+    printf("Device Name (=hostname): %s\n", hostname);
+    printf("=======================================================\n");
+
     //put the headset's ip here
     string headset_ip = "192.168.0.XXX";
 
@@ -691,17 +702,26 @@ int main (int argc, char *argv[])
     // gst_bus_pop_filtered (bus, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
     // gst_bus_pop_filtered (bus1, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
 
+    CtrlClient conn;
+
+
+    conn.init(hostname, headset_ip);
+    conn.writeid();
+
     try {
         while (true) {
-                sleep(10);
+            if (!conn.readcmd())
+            {
+            }
+            usleep(100);
         }
     } catch (InterruptException &e) {
         fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());
     } catch (std::exception &e) {
         fprintf(stderr, "[ERROR]: %s\n", e.what());
-        return -1;
     }
 
+    conn.deinit();
     printf("End process...\n");
 
     // gst_object_unref (bus);

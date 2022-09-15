@@ -47,7 +47,7 @@ int CtrlClient::init(const std::string &hostname, const std::string &ip_str)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
         printf("socket creation failed...\n");
-        exit(0);
+        return -1;
     }
     else
         printf("Socket successfully created..\n");
@@ -61,7 +61,7 @@ int CtrlClient::init(const std::string &hostname, const std::string &ip_str)
     // connect the client socket to server socket
     if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) {
         printf("connection with the server failed...\n");
-        exit(0);
+        return -1;
     }
     else
         printf("connected to the server..\n");
@@ -71,12 +71,26 @@ int CtrlClient::init(const std::string &hostname, const std::string &ip_str)
 
 int CtrlClient::deinit(void)
 {
-    close(sockfd);
+    if (sockfd)
+        close(sockfd);
     return 0;
 }
 
-int CtrlClient::readcmd(void)
+int CtrlClient::_read(void *buf, size_t len)
 {
+    int ret = recv(sockfd, buf, len, 0);
+    return ret;
+}
+
+int CtrlClient::readcmd(struct RemoteCtrlCmdMsg &msg)
+{
+    return _read((void *)&msg, sizeof(msg));
+}
+
+int CtrlClient::_write(const void *buf, size_t len)
+{
+    int ret = send(sockfd, buf, len, 0);
+    return ret;
 }
 
 int CtrlClient::writecmd(void)
@@ -86,6 +100,6 @@ int CtrlClient::writecmd(void)
 int CtrlClient::writeid()
 {
     HeadsetCtrlCmdMsg msg = { predefined_header, HeadsetCtrlCmd::REGISTER, 0, 0, 0};
-    send(sockfd, (const void *)&msg, sizeof(msg), 0);
+    return _write((const void *)&msg, sizeof(msg));
 }
 

@@ -36,7 +36,7 @@ struct RemoteCtrlCmdMsg {
 
 class CtrlClient {
 private: 
-    int sockfd;
+    int sockfd = 0;
     std::string hostname;
     struct CmdHeader predefined_header;
 
@@ -45,8 +45,11 @@ public:
 
     void run(void);
 
-    int readcmd();
+    int _read(void *buf, size_t len);
+    int readcmd(struct RemoteCtrlCmdMsg &msg);
 
+
+    int _write(const void *buf, size_t len);
     int writeid();
     int writecmd();
 

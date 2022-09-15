@@ -608,7 +608,7 @@ int main (int argc, char *argv[])
         }
         pipeline = gst_parse_launch
           (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, " + stereo_video_conf_str+ "  ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
-        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        //gst_element_set_state(pipeline, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
     }
@@ -626,7 +626,7 @@ int main (int argc, char *argv[])
             }
             pipeline1 = gst_parse_launch
               (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
-            gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+            //gst_element_set_state(pipeline1, GST_STATE_PLAYING);
         } else {
             fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
         }
@@ -641,7 +641,7 @@ int main (int argc, char *argv[])
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
         pipeline2 = gst_parse_launch
           (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
-        gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+        //gst_element_set_state(pipeline2, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
     }
@@ -666,7 +666,7 @@ int main (int argc, char *argv[])
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
         pipeline2 = gst_parse_launch
           (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
-        gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+        //gst_element_set_state(pipeline2, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
     }
@@ -674,7 +674,7 @@ int main (int argc, char *argv[])
     pipeline_audio = gst_parse_launch
         (("pulsesrc device=alsa_input.usb-046d_HD_Pro_Webcam_C920_9D5E927F-02.analog-stereo ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
 #endif
-    gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+    //gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
 
     if (error != NULL) {
         g_error("Couldn't launch the pipeline");
@@ -705,13 +705,47 @@ int main (int argc, char *argv[])
     CtrlClient conn;
 
 
-    conn.init(hostname, headset_ip);
-    conn.writeid();
+    if (conn.init(hostname, headset_ip)) {
+        return -1;
+    }
+
+    if (conn.writeid() < 0) {
+        fprintf(stderr, "[ERROR]: writeid failed, %s(%d)\n", strerror(errno), errno);
+        return -1;
+    }
 
     try {
         while (true) {
-            if (!conn.readcmd())
-            {
+            struct RemoteCtrlCmdMsg msg;
+            int ret = conn.readcmd(msg);
+            if (ret < 0) {
+                fprintf(stderr, "[ERROR]: read failed, %s(%d)\n", strerror(errno), errno);
+                break;
+            } else if ( ret == 0) {
+                fprintf(stderr, "connection closed\n");
+                break;
+            } else {
+                switch (msg.cmd) {
+                    case  RemoteCtrlCmd::PLAY:
+                        {
+                            gst_element_set_state(pipeline, GST_STATE_PLAYING);
+                            gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+                            gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+                            gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+                            break;
+                        }
+                    case RemoteCtrlCmd::STOP:
+                        {
+                            gst_element_set_state(pipeline, GST_STATE_PAUSED);
+                            gst_element_set_state(pipeline1, GST_STATE_PAUSED);
+                            gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+                            gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                            break;
+                        }
+                    case RemoteCtrlCmd::NONE:
+                    default:
+                        break;
+                }
             }
             usleep(100);
         }

@@ -707,10 +707,10 @@ int main (int argc, char *argv[])
     int stream_state = 0;
 
     try {
-        if (conn.init(hostname)) {
-            return -1;
-        }
         while (true) {
+            if (conn.init(hostname)) {
+                return -1;
+            }
             if (conn.conn(headset_ip)) {
                 fprintf(stderr, "[WARN] connectto() failed retry after 1 sec\n");
                 sleep(1);
@@ -734,6 +734,7 @@ int main (int argc, char *argv[])
                     fprintf(stderr, "[ERROR] read failed, %s(%d)\n", strerror(errno), errno);
                 } else if ( ret == 0) {
                     fprintf(stderr, "connection closed\n");
+                    conn.deinit();
                     break;
                 } else {
                     switch (msg.cmd) {

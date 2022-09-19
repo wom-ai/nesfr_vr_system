@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 
 #include "ctrlclient.hpp"
 
@@ -51,6 +52,13 @@ int CtrlClient::init(const std::string &hostname)
     else
         printf("Socket successfully created..\n");
 
+    int on = 1;
+    if (ioctl(sockfd, FIONBIO, (char *)&on) < 0)
+    {
+        fprintf(stderr, "[ERROR] ioctl() failed, %s(%d)\n", strerror(errno), errno);
+        close(sockfd);
+        return -1;
+    }
     return 0;
 }
 int CtrlClient::conn(const std::string &ip_str)
@@ -82,7 +90,30 @@ int CtrlClient::deinit(void)
 
 int CtrlClient::_read(void *buf, size_t len)
 {
-    int ret = recv(sockfd, buf, len, 0);
+    int ret;
+    fd_set set;
+    struct timeval timeout;
+
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 50000;
+
+    while(true) {
+        FD_ZERO(&set);
+        FD_SET(sockfd, &set);
+        ret = select(sockfd + 1, &set, NULL, NULL, &timeout);
+
+        if (ret < 0) {
+            fprintf(stderr, "[ERROR]: select() failed, %s(%d)\n", strerror(errno), errno);
+            break;
+        } else if (ret && FD_ISSET(sockfd, &set)) {
+            ret = recv(sockfd, buf, len, 0);
+            printf("[INFO] receive command from server\n");
+            break;
+        } else {
+            //fprintf(stderr, "[WARN]: select() timeout.\n");
+            continue;
+        }
+    }
     return ret;
 }
 

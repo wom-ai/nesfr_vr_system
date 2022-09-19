@@ -36,9 +36,8 @@ void func(int sockfd)
     }
 }
    
-int CtrlClient::init(const std::string &hostname, const std::string &ip_str)
+int CtrlClient::init(const std::string &hostname)
 {
-    struct sockaddr_in servaddr;
     this->hostname = hostname;
     memset(predefined_header.name, 0x0, sizeof(predefined_header.name));
     strncpy(predefined_header.name, hostname.c_str(), sizeof(predefined_header.name));
@@ -46,11 +45,17 @@ int CtrlClient::init(const std::string &hostname, const std::string &ip_str)
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
-        printf("socket creation failed...\n");
+        fprintf(stderr, "[ERROR] socket creation failed...\n");
         return -1;
     }
     else
         printf("Socket successfully created..\n");
+
+    return 0;
+}
+int CtrlClient::conn(const std::string &ip_str)
+{
+    struct sockaddr_in servaddr;
     bzero(&servaddr, sizeof(servaddr));
    
     // assign IP, PORT
@@ -60,12 +65,11 @@ int CtrlClient::init(const std::string &hostname, const std::string &ip_str)
    
     // connect the client socket to server socket
     if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) {
-        printf("connection with the server failed...\n");
+        fprintf(stderr, "[ERROR] connection with the server failed, %s(%d)\n", strerror(errno), errno);
         return -1;
     }
     else
         printf("connected to the server..\n");
-
     return 0;
 }
 

@@ -704,50 +704,57 @@ int main (int argc, char *argv[])
 
     CtrlClient conn;
 
-
-    if (conn.init(hostname, headset_ip)) {
-        return -1;
-    }
-
-    if (conn.writeid() < 0) {
-        fprintf(stderr, "[ERROR]: writeid failed, %s(%d)\n", strerror(errno), errno);
-        return -1;
-    }
-
     try {
+        if (conn.init(hostname)) {
+            return -1;
+        }
         while (true) {
-            struct RemoteCtrlCmdMsg msg;
-            int ret = conn.readcmd(msg);
-            if (ret < 0) {
-                fprintf(stderr, "[ERROR]: read failed, %s(%d)\n", strerror(errno), errno);
-                break;
-            } else if ( ret == 0) {
-                fprintf(stderr, "connection closed\n");
-                break;
-            } else {
-                switch (msg.cmd) {
-                    case  RemoteCtrlCmd::PLAY:
-                        {
-                            gst_element_set_state(pipeline, GST_STATE_PLAYING);
-                            gst_element_set_state(pipeline1, GST_STATE_PLAYING);
-                            gst_element_set_state(pipeline2, GST_STATE_PLAYING);
-                            gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
-                            break;
-                        }
-                    case RemoteCtrlCmd::STOP:
-                        {
-                            gst_element_set_state(pipeline, GST_STATE_PAUSED);
-                            gst_element_set_state(pipeline1, GST_STATE_PAUSED);
-                            gst_element_set_state(pipeline2, GST_STATE_PAUSED);
-                            gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
-                            break;
-                        }
-                    case RemoteCtrlCmd::NONE:
-                    default:
-                        break;
-                }
+            if (conn.conn(headset_ip)) {
+                fprintf(stderr, "[WARN] connectto() failed retry after 1 sec\n");
+                sleep(1);
+                continue;
             }
-            usleep(100);
+
+            if (conn.writeid() < 0) {
+                fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+                return -1;
+            }
+
+            while (true) {
+                struct RemoteCtrlCmdMsg msg;
+                int ret = conn.readcmd(msg);
+                if (ret < 0) {
+                    fprintf(stderr, "[ERROR] read failed, %s(%d)\n", strerror(errno), errno);
+                } else if ( ret == 0) {
+                    fprintf(stderr, "connection closed\n");
+                    break;
+                } else {
+                    switch (msg.cmd) {
+                        case  RemoteCtrlCmd::PLAY:
+                            {
+                                printf(">>> PLAY\n");
+                                gst_element_set_state(pipeline, GST_STATE_PLAYING);
+                                gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+                                gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+                                gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+                                break;
+                            }
+                        case RemoteCtrlCmd::STOP:
+                            {
+                                printf(">>> STOP\n");
+                                gst_element_set_state(pipeline, GST_STATE_PAUSED);
+                                gst_element_set_state(pipeline1, GST_STATE_PAUSED);
+                                gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+                                gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                                break;
+                            }
+                        case RemoteCtrlCmd::NONE:
+                        default:
+                            break;
+                    }
+                }
+                usleep(100);
+            }
         }
     } catch (InterruptException &e) {
         fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());

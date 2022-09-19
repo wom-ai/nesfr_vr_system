@@ -41,8 +41,8 @@ private:
     struct CmdHeader predefined_header;
 
 public:
-    int init(const std::string &hostname, const std::string &ip_str);
-
+    int init(const std::string &hostname);
+    int conn(const std::string &ip_str);
     void run(void);
 
     int _read(void *buf, size_t len);

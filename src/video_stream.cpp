@@ -704,6 +704,8 @@ int main (int argc, char *argv[])
 
     CtrlClient conn;
 
+    int stream_state = 0;
+
     try {
         if (conn.init(hostname)) {
             return -1;
@@ -715,8 +717,13 @@ int main (int argc, char *argv[])
                 continue;
             }
 
-            if (conn.writeid() < 0) {
-                fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+            if (conn.write_id() < 0) {
+                fprintf(stderr, "[ERROR] write_id() failed, %s(%d)\n", strerror(errno), errno);
+                return -1;
+            }
+
+            if (conn.write_streamstate(stream_state) < 0) {
+                fprintf(stderr, "[ERROR] write_streamstate() failed, %s(%d)\n", strerror(errno), errno);
                 return -1;
             }
 
@@ -733,19 +740,29 @@ int main (int argc, char *argv[])
                         case  RemoteCtrlCmd::PLAY:
                             {
                                 printf(">>> PLAY\n");
+                                stream_state = 1;
                                 gst_element_set_state(pipeline, GST_STATE_PLAYING);
                                 gst_element_set_state(pipeline1, GST_STATE_PLAYING);
                                 gst_element_set_state(pipeline2, GST_STATE_PLAYING);
                                 gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+                                if (conn.write_streamstate(stream_state) < 0) {
+                                    fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+                                    return -1;
+                                }
                                 break;
                             }
                         case RemoteCtrlCmd::STOP:
                             {
                                 printf(">>> STOP\n");
+                                stream_state = 0;
                                 gst_element_set_state(pipeline, GST_STATE_PAUSED);
                                 gst_element_set_state(pipeline1, GST_STATE_PAUSED);
                                 gst_element_set_state(pipeline2, GST_STATE_PAUSED);
                                 gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                                if (conn.write_streamstate(stream_state) < 0) {
+                                    fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+                                    return -1;
+                                }
                                 break;
                             }
                         case RemoteCtrlCmd::NONE:

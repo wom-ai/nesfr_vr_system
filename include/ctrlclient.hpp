@@ -6,6 +6,7 @@
 enum class HeadsetCtrlCmd{
     NONE = 0,
     REGISTER,
+    STREAM_STATE,
 };
 
 enum class RemoteCtrlCmd{
@@ -50,8 +51,9 @@ public:
 
 
     int _write(const void *buf, size_t len);
-    int writeid();
-    int writecmd();
+    int write_id(void);
+    int write_cmd(void);
+    int write_streamstate(const int play);
 
     int deinit(void); 
 };

@@ -51,7 +51,7 @@ int CtrlClient::init(const std::string &hostname)
     }
     else
         printf("Socket successfully created..\n");
-
+/*
     int on = 1;
     if (ioctl(sockfd, FIONBIO, (char *)&on) < 0)
     {
@@ -59,6 +59,7 @@ int CtrlClient::init(const std::string &hostname)
         close(sockfd);
         return -1;
     }
+    */
     return 0;
 }
 int CtrlClient::conn(const std::string &ip_str)
@@ -128,13 +129,18 @@ int CtrlClient::_write(const void *buf, size_t len)
     return ret;
 }
 
-int CtrlClient::writecmd(void)
+int CtrlClient::write_cmd(void)
 {
 }
 
-int CtrlClient::writeid()
+int CtrlClient::write_id()
 {
     HeadsetCtrlCmdMsg msg = { predefined_header, HeadsetCtrlCmd::REGISTER, 0, 0, 0};
     return _write((const void *)&msg, sizeof(msg));
 }
 
+int CtrlClient::write_streamstate(const int play)
+{
+    HeadsetCtrlCmdMsg msg = { predefined_header, HeadsetCtrlCmd::STREAM_STATE, play, 0, 0};
+    return _write((const void *)&msg, sizeof(msg));
+}

@@ -742,10 +742,10 @@ int main (int argc, char *argv[])
                             {
                                 printf(">>> PLAY\n");
                                 stream_state = 1;
-                                gst_element_set_state(pipeline, GST_STATE_PLAYING);
-                                gst_element_set_state(pipeline1, GST_STATE_PLAYING);
-                                gst_element_set_state(pipeline2, GST_STATE_PLAYING);
-                                gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+                                if (pipeline) gst_element_set_state(pipeline, GST_STATE_PLAYING);
+                                if (pipeline1) gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+                                if (pipeline2) gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+                                if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
                                 if (conn.write_streamstate(stream_state) < 0) {
                                     fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
                                     return -1;
@@ -756,10 +756,10 @@ int main (int argc, char *argv[])
                             {
                                 printf(">>> STOP\n");
                                 stream_state = 0;
-                                gst_element_set_state(pipeline, GST_STATE_PAUSED);
-                                gst_element_set_state(pipeline1, GST_STATE_PAUSED);
-                                gst_element_set_state(pipeline2, GST_STATE_PAUSED);
-                                gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                                if (pipeline) gst_element_set_state(pipeline, GST_STATE_PAUSED);
+                                if (pipeline1) gst_element_set_state(pipeline1, GST_STATE_PAUSED);
+                                if (pipeline2) gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+                                if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
                                 if (conn.write_streamstate(stream_state) < 0) {
                                     fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
                                     return -1;

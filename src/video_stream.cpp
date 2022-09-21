@@ -566,14 +566,14 @@ int main (int argc, char *argv[])
     string headset_ip = "192.168.0.XXX";
 
     if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-        fprintf(stderr, "[ERROR] Couldn't file VR Headset.\n");
+        fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
 
         if (!call_nmap()) {
             fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
             return -1;
         }
         if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-            fprintf(stderr, "[ERROR] Couldn't file VR Headset.\n");
+            fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
             return -1;
         }
     }

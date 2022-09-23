@@ -734,6 +734,14 @@ int main (int argc, char *argv[])
                     fprintf(stderr, "[ERROR] read failed, %s(%d)\n", strerror(errno), errno);
                 } else if ( ret == 0) {
                     fprintf(stderr, "connection closed\n");
+                    {
+                        printf(">>> STOP\n");
+                        stream_state = 0;
+                        if (pipeline) gst_element_set_state(pipeline, GST_STATE_PAUSED);
+                        if (pipeline1) gst_element_set_state(pipeline1, GST_STATE_PAUSED);
+                        if (pipeline2) gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+                        if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                    }
                     conn.deinit();
                     break;
                 } else {

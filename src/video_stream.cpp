@@ -25,15 +25,8 @@ using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
 
 static bool is_stereo = true;
-//static int stereo_video_width = 1920;
-//static int stereo_video_height = 1080;
-#if 0
-static int stereo_video_width = 1280;
-static int stereo_video_height = 720;
-#else
-static int stereo_video_width = 640;
-static int stereo_video_height = 480;
-#endif
+static int stereo_video_width = 0;
+static int stereo_video_height = 0;
 
 //static const int main_video_width = 1920;
 //static const int main_video_height = 1080;
@@ -86,11 +79,11 @@ bool init_options(int argc, char *argv[])
 {
     printf("=======================================================\n");
     printf("dims 0: 1920x1080\n");
-    printf("dims 1: 1280x720\n");
-    printf("dims 2:  640x480 (default)\n");
+    printf("dims 1: 1280x720 (default)\n");
+    printf("dims 2:  640x480\n");
     printf("=======================================================\n");
     int c;
-    int dims = 2;
+    int dims = 1;
     while ((c = getopt (argc, argv, "md:")) != -1)
         switch (c)
         {

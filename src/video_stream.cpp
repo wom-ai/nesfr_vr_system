@@ -484,7 +484,7 @@ bool set_stereo_camera_left(const std::string &dev_file)
     return true;
 }
 
-bool set_stereo_camera(const std::string &dev_file)
+bool configure_stereo_camera(const std::string &dev_file)
 {
     int n;
     FILE *pin = nullptr;
@@ -557,7 +557,7 @@ int init_gstreamer(   GstElement *&pipeline_stereo_left
     // one eye of the stereo camera
     if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
         printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
-        if (!set_stereo_camera(stereo_camera_left_dev_file))
+        if (!configure_stereo_camera(stereo_camera_left_dev_file))
         {
             fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Left)\n");
             return -1;
@@ -575,7 +575,7 @@ int init_gstreamer(   GstElement *&pipeline_stereo_left
         // one eye of the stereo camera
         if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
             printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
-            if (!set_stereo_camera(stereo_camera_right_dev_file))
+            if (!configure_stereo_camera(stereo_camera_right_dev_file))
             {
                 fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Right)\n");
                 return -1;

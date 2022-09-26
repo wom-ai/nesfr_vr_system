@@ -1,25 +1,19 @@
 #include <gst/gst.h>
 #include <unistd.h>
-#include <string>
-
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <linux/videodev2.h>
 
+#include <string>
 #include <cstring>
 #include <algorithm>
 #include <vector>
 #include <map>
-#include <linux/videodev2.h>
-
-#include "video_stream.hpp"
-
 #include <csignal>
 
-#include <unistd.h>
-
+#include "video_stream.hpp"
 #include "CtrlClient.hpp"
 
-using namespace std;
 
 using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
@@ -35,14 +29,14 @@ static const int main_video_height = 720;
 //static const int main_video_width = 640;
 //static const int main_video_height = 480;
 
-static const std::vector<string> main_camera_card_strs = {"USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam", "HD Pro Webcam C920"};
-static const std::vector<string> stereo_camera_left_strs = {"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",};
-static const std::vector<string> stereo_camera_right_strs = {"Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5",};
+static const std::vector<std::string> main_camera_card_strs = {"USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam", "HD Pro Webcam C920"};
+static const std::vector<std::string> stereo_camera_left_strs = {"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",};
+static const std::vector<std::string> stereo_camera_right_strs = {"Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5",};
 
 // Headset A
-static const string headset_A_mac_addr = "2c:26:17:eb:ae:28";
+static const std::string headset_A_mac_addr = "2c:26:17:eb:ae:28";
 // Headset B
-static const string headset_B_mac_addr = "2c:26:17:e9:08:3e";
+static const std::string headset_B_mac_addr = "2c:26:17:e9:08:3e";
 
 static dev_map file_card_map;
 
@@ -58,7 +52,7 @@ static const char *prefixes[] = {
 };
 
 //put the headset's ip here
-string headset_ip = "192.168.0.XXX";
+std::string headset_ip = "192.168.0.XXX";
 
 class InterruptException : public std::exception
 {
@@ -317,9 +311,9 @@ static bool find_dev_file_by_strs(const std::vector<string> &id_strs, string &de
 }
 */
 
-static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs, string &dev_file)
+static bool find_and_remove_dev_file_by_strs(const std::vector<std::string> &id_strs, std::string &dev_file)
 {
-    string temp = "";
+    std::string temp = "";
     for (const auto id_str : id_strs) {
         temp += "<";
         temp += id_str;
@@ -358,9 +352,9 @@ static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs,
     return ret;
 }
 
-static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs, string &dev_file, string &found_id_str)
+static bool find_and_remove_dev_file_by_strs(const std::vector<std::string> &id_strs, std::string &dev_file, std::string &found_id_str)
 {
-    string temp = "";
+    std::string temp = "";
     for (const auto id_str : id_strs) {
         temp += "<";
         temp += id_str;
@@ -404,7 +398,7 @@ static bool find_and_remove_dev_file_by_strs(const std::vector<string> &id_strs,
  * reference
  *   - https://www.cplusplus.com/reference/cstring/strtok/
  */
-static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
+static bool find_headset_ip_by_MACAddr(const std::string &mac_addr, std::string &ip)
 {
     bool ret = false;
     FILE *pin = nullptr;
@@ -412,7 +406,7 @@ static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
     if (!pin)
         return false;
 
-    std::vector<string> lines;
+    std::vector<std::string> lines;
     while (!feof(pin)) {
         char *line = nullptr;
         size_t len = 0;
@@ -425,7 +419,7 @@ static bool find_headset_ip_by_MACAddr(const string &mac_addr, string &ip)
     // parse lines
     for (const auto line : lines) {
         char *pch;
-        std::vector<string> tokens;
+        std::vector<std::string> tokens;
         pch = strtok ((char *)line.c_str()," ,-\n");
         while (pch != NULL)
         {
@@ -467,7 +461,7 @@ static bool call_nmap(void)
     return true;
 }
 
-bool set_stereo_camera_left(const string &dev_file)
+bool set_stereo_camera_left(const std::string &dev_file)
 {
     int n;
     FILE *pin = nullptr;
@@ -490,7 +484,7 @@ bool set_stereo_camera_left(const string &dev_file)
     return true;
 }
 
-bool set_stereo_camera(const string &dev_file)
+bool set_stereo_camera(const std::string &dev_file)
 {
     int n;
     FILE *pin = nullptr;
@@ -543,9 +537,9 @@ int init_gstreamer(   GstElement *&pipeline_stereo_left
                     , GstElement *&pipeline_audio
                     )
 {
-    string main_camera_dev_file;
-    string stereo_camera_left_dev_file;
-    string stereo_camera_right_dev_file;
+    std::string main_camera_dev_file;
+    std::string stereo_camera_left_dev_file;
+    std::string stereo_camera_right_dev_file;
 
     GError *error = NULL;
     GError *error1 = NULL;
@@ -558,7 +552,7 @@ int init_gstreamer(   GstElement *&pipeline_stereo_left
     char buf[size];
 
     sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=30/1 ", stereo_video_width, stereo_video_height);
-    string stereo_video_conf_str = buf;
+    std::string stereo_video_conf_str = buf;
 
     // one eye of the stereo camera
     if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
@@ -597,7 +591,7 @@ int init_gstreamer(   GstElement *&pipeline_stereo_left
     //main camera
 #if 0
     sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=60/1 ", main_video_width, main_video_height);
-    string main_video_conf_str = buf;
+    std::string main_video_conf_str = buf;
 
     if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
@@ -622,7 +616,7 @@ int init_gstreamer(   GstElement *&pipeline_stereo_left
 //        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! rtpL8pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
 #else
     sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=30/1 ", main_video_width, main_video_height);
-    string main_video_conf_str = buf;
+    std::string main_video_conf_str = buf;
 
     if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());

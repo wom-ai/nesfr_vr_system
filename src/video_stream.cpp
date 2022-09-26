@@ -57,6 +57,8 @@ static const char *prefixes[] = {
     nullptr
 };
 
+//put the headset's ip here
+string headset_ip = "192.168.0.XXX";
 
 class InterruptException : public std::exception
 {
@@ -535,49 +537,16 @@ bool set_stereo_camera(const string &dev_file)
     return true;
 }
 
-int main (int argc, char *argv[])
+int init_gstreamer(   GstElement *&pipeline_stereo_left
+                    , GstElement *&pipeline_stereo_right
+                    , GstElement *&pipeline_main
+                    , GstElement *&pipeline_audio
+                    )
 {
-    if(init_options(argc, argv))
-        return -1;
-
-    init_signal();
-
     string main_camera_dev_file;
     string stereo_camera_left_dev_file;
     string stereo_camera_right_dev_file;
 
-    //set CmdHeader
-    char hostname[16];
-    //get host name
-    memset(hostname, 0x0, sizeof(hostname));
-    gethostname(hostname, sizeof(hostname));
-    printf("=======================================================\n");
-    printf("Device Name (=hostname): %s\n", hostname);
-    printf("=======================================================\n");
-
-    //put the headset's ip here
-    string headset_ip = "192.168.0.XXX";
-
-    if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-        fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
-
-        if (!call_nmap()) {
-            fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
-            return -1;
-        }
-        if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-            fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
-            return -1;
-        }
-    }
-    printf(">> VR Headset ip: %s\n", headset_ip.c_str());
-
-    init_dev_files();
-
-    GstElement *pipeline = nullptr;
-    GstElement *pipeline1 = nullptr;
-    GstElement *pipeline2 = nullptr;
-    GstElement *pipeline_audio = nullptr;
     GError *error = NULL;
     GError *error1 = NULL;
     GError *error2 = NULL;
@@ -599,9 +568,9 @@ int main (int argc, char *argv[])
             fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Left)\n");
             return -1;
         }
-        pipeline = gst_parse_launch
+        pipeline_stereo_left = gst_parse_launch
           (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, " + stereo_video_conf_str+ "  ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
-        //gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        //gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
     }
@@ -617,9 +586,9 @@ int main (int argc, char *argv[])
                 fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Right)\n");
                 return -1;
             }
-            pipeline1 = gst_parse_launch
+            pipeline_stereo_right = gst_parse_launch
               (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
-            //gst_element_set_state(pipeline1, GST_STATE_PLAYING);
+            //gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
         } else {
             fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
         }
@@ -632,9 +601,9 @@ int main (int argc, char *argv[])
 
     if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
-        pipeline2 = gst_parse_launch
+        pipeline_main = gst_parse_launch
           (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
-        //gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+        //gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
     }
@@ -657,9 +626,9 @@ int main (int argc, char *argv[])
 
     if (find_and_remove_dev_file_by_strs(main_camera_card_strs, main_camera_dev_file)) {
         printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
-        pipeline2 = gst_parse_launch
+        pipeline_main = gst_parse_launch
           (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
-        //gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+        //gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
     } else {
         fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
     }
@@ -670,17 +639,17 @@ int main (int argc, char *argv[])
     //gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
 
     if (error != NULL) {
-        g_error("Couldn't launch the pipeline");
+        g_error("Couldn't launch the pipeline_stereo_left");
         return -1;
     }
 
     if (error1 != NULL) {
-        g_error("Couldn't launch the pipeline1");
+        g_error("Couldn't launch the pipeline_stereo_right");
         return -1;
     }
 
     if (error2 != NULL) {
-        g_error("Couldn't launch the pipeline2");
+        g_error("Couldn't launch the pipeline_main");
         return -1;
     }
 
@@ -689,19 +658,52 @@ int main (int argc, char *argv[])
         return -1;
     }
 
-    // GstBus *bus = gst_element_get_bus (pipeline);
-    // GstBus *bus1 = gst_element_get_bus (pipeline1);
+    return 0;
+}
 
-    // gst_bus_pop_filtered (bus, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
-    // gst_bus_pop_filtered (bus1, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
+int deinit_gstreamer( GstElement *&pipeline_stereo_left
+                    , GstElement *&pipeline_stereo_right
+                    , GstElement *&pipeline_main
+                    , GstElement *&pipeline_audio
+                    )
+{
+    // gst_object_unref (bus);
+    if (pipeline_stereo_left) {
+        gst_element_set_state (pipeline_stereo_left, GST_STATE_NULL);
+        gst_object_unref (pipeline_stereo_left);
+    }
 
-    CtrlClient conn;
+    // gst_object_unref (bus1);
+    if (pipeline_stereo_right) {
+        gst_element_set_state (pipeline_stereo_right, GST_STATE_NULL);
+        gst_object_unref (pipeline_stereo_right);
+    }
 
+    if (pipeline_main) {
+        gst_element_set_state (pipeline_main, GST_STATE_NULL);
+        gst_object_unref (pipeline_main);
+    }
+
+    if (pipeline_audio) {
+        gst_element_set_state (pipeline_audio, GST_STATE_NULL);
+        gst_object_unref (pipeline_audio);
+    }
+
+    return 0;
+}
+
+int main_loop(    CtrlClient conn 
+                , GstElement *&pipeline_stereo_left
+                , GstElement *&pipeline_stereo_right
+                , GstElement *&pipeline_main
+                , GstElement *&pipeline_audio
+                )
+{
     int stream_state = 0;
 
     try {
         while (true) {
-            if (conn.init(hostname)) {
+            if (conn.init()) {
                 return -1;
             }
             if (conn.conn(headset_ip)) {
@@ -730,9 +732,9 @@ int main (int argc, char *argv[])
                     {
                         printf(">>> STOP\n");
                         stream_state = 0;
-                        if (pipeline) gst_element_set_state(pipeline, GST_STATE_PAUSED);
-                        if (pipeline1) gst_element_set_state(pipeline1, GST_STATE_PAUSED);
-                        if (pipeline2) gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+                        if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
+                        if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
+                        if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
                         if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
                     }
                     conn.deinit();
@@ -743,9 +745,9 @@ int main (int argc, char *argv[])
                             {
                                 printf(">>> PLAY\n");
                                 stream_state = 1;
-                                if (pipeline) gst_element_set_state(pipeline, GST_STATE_PLAYING);
-                                if (pipeline1) gst_element_set_state(pipeline1, GST_STATE_PLAYING);
-                                if (pipeline2) gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+                                if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
+                                if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
+                                if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
                                 if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
                                 if (conn.write_streamstate(stream_state) < 0) {
                                     fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
@@ -757,9 +759,9 @@ int main (int argc, char *argv[])
                             {
                                 printf(">>> STOP\n");
                                 stream_state = 0;
-                                if (pipeline) gst_element_set_state(pipeline, GST_STATE_PAUSED);
-                                if (pipeline1) gst_element_set_state(pipeline1, GST_STATE_PAUSED);
-                                if (pipeline2) gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+                                if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
+                                if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
+                                if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
                                 if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
                                 if (conn.write_streamstate(stream_state) < 0) {
                                     fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
@@ -780,32 +782,82 @@ int main (int argc, char *argv[])
     } catch (std::exception &e) {
         fprintf(stderr, "[ERROR]: %s\n", e.what());
     }
+    return 0;
+}
+
+int main (int argc, char *argv[])
+{
+    if(init_options(argc, argv))
+        return -1;
+
+    init_signal();
+
+    //set CmdHeader
+    char hostname[16];
+    //get host name
+    memset(hostname, 0x0, sizeof(hostname));
+    gethostname(hostname, sizeof(hostname));
+    printf("=======================================================\n");
+    printf("Device Name (=hostname): %s\n", hostname);
+    printf("=======================================================\n");
+
+
+    if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+        fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
+
+        if (!call_nmap()) {
+            fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
+            return -1;
+        }
+        if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+            fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
+            return -1;
+        }
+    }
+    printf(">> VR Headset ip: %s\n", headset_ip.c_str());
+
+    init_dev_files();
+
+    GstElement *pipeline_stereo_left = nullptr;
+    GstElement *pipeline_stereo_right = nullptr;
+    GstElement *pipeline_main = nullptr;
+    GstElement *pipeline_audio = nullptr;
+
+
+    if (init_gstreamer( pipeline_stereo_left,
+                        pipeline_stereo_right,
+                        pipeline_main,
+                        pipeline_audio) < 0)
+    {
+        perror ("gstreamer initialization failed.");
+        return -1;
+    }
+
+    // GstBus *bus = gst_element_get_bus (pipeline_stereo_left);
+    // GstBus *bus1 = gst_element_get_bus (pipeline_stereo_right);
+
+    // gst_bus_pop_filtered (bus, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
+    // gst_bus_pop_filtered (bus1, GST_MESSAGE_ERROR | GST_MESSAGE_EOS);
+
+    CtrlClient conn(hostname);
+
+    main_loop(  conn
+                , pipeline_stereo_left
+                , pipeline_stereo_right
+                , pipeline_main
+                , pipeline_audio);
 
     conn.deinit();
     printf("End process...\n");
 
-    // gst_object_unref (bus);
-    if (pipeline) {
-        gst_element_set_state (pipeline, GST_STATE_NULL);
-        gst_object_unref (pipeline);
+    if (deinit_gstreamer(   pipeline_stereo_left,
+                            pipeline_stereo_right,
+                            pipeline_main,
+                            pipeline_audio) < 0)
+    {
+        perror ("gstreamer deinitialization failed.");
+        return -1;
     }
-
-    // gst_object_unref (bus1);
-    if (pipeline1) {
-        gst_element_set_state (pipeline1, GST_STATE_NULL);
-        gst_object_unref (pipeline1);
-    }
-
-    if (pipeline2) {
-        gst_element_set_state (pipeline2, GST_STATE_NULL);
-        gst_object_unref (pipeline2);
-    }
-
-    if (pipeline_audio) {
-        gst_element_set_state (pipeline_audio, GST_STATE_NULL);
-        gst_object_unref (pipeline_audio);
-    }
-
     printf("End properly\n");
 
     return 0;

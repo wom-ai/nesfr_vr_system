@@ -42,7 +42,11 @@ private:
     struct CmdHeader predefined_header;
 
 public:
-    int init(const std::string &hostname);
+    CtrlClient(const std::string &hostname);
+
+    int init(void);
+    int deinit(void);
+
     int conn(const std::string &ip_str);
     void run(void);
 
@@ -54,8 +58,6 @@ public:
     int write_id(void);
     int write_cmd(void);
     int write_streamstate(const int play);
-
-    int deinit(void); 
 };
 
 #endif //CTRLCLIENT_HPP

@@ -36,13 +36,16 @@ void func(int sockfd)
         }
     }
 }
-   
-int CtrlClient::init(const std::string &hostname)
+
+CtrlClient::CtrlClient(const std::string &hostname)
 {
     this->hostname = hostname;
     memset(predefined_header.name, 0x0, sizeof(predefined_header.name));
     strncpy(predefined_header.name, hostname.c_str(), sizeof(predefined_header.name));
-   
+}
+
+int CtrlClient::init(void)
+{
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {

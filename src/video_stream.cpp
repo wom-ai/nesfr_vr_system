@@ -695,86 +695,80 @@ int main_loop(    CtrlClient conn
 {
     int stream_state = 0;
 
-    try {
-        while (true) {
-            if (conn.init()) {
-                return -1;
-            }
-            if (conn.conn(headset_ip)) {
-                fprintf(stderr, "[WARN] connectto() failed retry after 1 sec\n");
-                sleep(1);
-                continue;
-            }
-
-            if (conn.write_id() < 0) {
-                fprintf(stderr, "[ERROR] write_id() failed, %s(%d)\n", strerror(errno), errno);
-                return -1;
-            }
-
-            if (conn.write_streamstate(stream_state) < 0) {
-                fprintf(stderr, "[ERROR] write_streamstate() failed, %s(%d)\n", strerror(errno), errno);
-                return -1;
-            }
-
-            while (true) {
-                struct RemoteCtrlCmdMsg msg;
-                int ret = conn.readcmd(msg);
-                if (ret < 0) {
-                    fprintf(stderr, "[ERROR] read failed, %s(%d)\n", strerror(errno), errno);
-                } else if ( ret == 0) {
-                    fprintf(stderr, "connection closed\n");
-                    {
-                        printf(">>> STOP\n");
-                        stream_state = 0;
-                        if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
-                        if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
-                        if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
-                        if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
-                    }
-                    conn.deinit();
-                    break;
-                } else {
-                    switch (msg.cmd) {
-                        case  RemoteCtrlCmd::PLAY:
-                            {
-                                printf(">>> PLAY\n");
-                                stream_state = 1;
-                                if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
-                                if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
-                                if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
-                                if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
-                                if (conn.write_streamstate(stream_state) < 0) {
-                                    fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
-                                    return -1;
-                                }
-                                break;
-                            }
-                        case RemoteCtrlCmd::STOP:
-                            {
-                                printf(">>> STOP\n");
-                                stream_state = 0;
-                                if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
-                                if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
-                                if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
-                                if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
-                                if (conn.write_streamstate(stream_state) < 0) {
-                                    fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
-                                    return -1;
-                                }
-                                break;
-                            }
-                        case RemoteCtrlCmd::NONE:
-                        default:
-                            break;
-                    }
-                }
-                usleep(100);
-            }
+    while (true) {
+        if (conn.init()) {
+            return -1;
         }
-    } catch (InterruptException &e) {
-        fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());
-    } catch (std::exception &e) {
-        fprintf(stderr, "[ERROR]: %s\n", e.what());
+        if (conn.conn(headset_ip)) {
+            fprintf(stderr, "[WARN] connectto() failed retry after 1 sec\n");
+            sleep(1);
+            continue;
+        }
+
+        if (conn.write_id() < 0) {
+            fprintf(stderr, "[ERROR] write_id() failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
+        if (conn.write_streamstate(stream_state) < 0) {
+            fprintf(stderr, "[ERROR] write_streamstate() failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
+        while (true) {
+            struct RemoteCtrlCmdMsg msg;
+            int ret = conn.readcmd(msg);
+            if (ret < 0) {
+                fprintf(stderr, "[ERROR] read failed, %s(%d)\n", strerror(errno), errno);
+            } else if ( ret == 0) {
+                fprintf(stderr, "connection closed\n");
+                {
+                    printf(">>> STOP\n");
+                    stream_state = 0;
+                    if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
+                    if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
+                    if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
+                    if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                }
+                conn.deinit();
+                break;
+            } else {
+                switch (msg.cmd) {
+                    case  RemoteCtrlCmd::PLAY:
+                        {
+                            printf(">>> PLAY\n");
+                            stream_state = 1;
+                            if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
+                            if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
+                            if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
+                            if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+                            if (conn.write_streamstate(stream_state) < 0) {
+                                fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+                                return -1;
+                            }
+                            break;
+                        }
+                    case RemoteCtrlCmd::STOP:
+                        {
+                            printf(">>> STOP\n");
+                            stream_state = 0;
+                            if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
+                            if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
+                            if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
+                            if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                            if (conn.write_streamstate(stream_state) < 0) {
+                                fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+                                return -1;
+                            }
+                            break;
+                        }
+                    case RemoteCtrlCmd::NONE:
+                    default:
+                        break;
+                }
+            }
+            usleep(100);
+        }
     }
     return 0;
 }
@@ -835,11 +829,18 @@ int main (int argc, char *argv[])
 
     CtrlClient conn(hostname);
 
-    main_loop(  conn
-                , pipeline_stereo_left
-                , pipeline_stereo_right
-                , pipeline_main
-                , pipeline_audio);
+    try {
+        main_loop(  conn
+                    , pipeline_stereo_left
+                    , pipeline_stereo_right
+                    , pipeline_main
+                    , pipeline_audio);
+
+    } catch (InterruptException &e) {
+        fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());
+    } catch (std::exception &e) {
+        fprintf(stderr, "[ERROR]: %s\n", e.what());
+    }
 
     conn.deinit();
     printf("End process...\n");

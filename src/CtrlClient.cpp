@@ -12,7 +12,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#include "ctrlclient.hpp"
+#include "CtrlClient.hpp"
 
 #define MAX 80
 #define PORT 12345

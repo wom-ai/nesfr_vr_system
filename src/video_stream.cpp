@@ -17,7 +17,7 @@
 
 #include <unistd.h>
 
-#include "ctrlclient.hpp"
+#include "CtrlClient.hpp"
 
 using namespace std;
 

@@ -11,7 +11,6 @@
 #include <string>
 #include <cstring>
 
-#include "video_stream.hpp"
 #include "CtrlClient.hpp"
 
 
@@ -311,13 +310,19 @@ static bool find_and_remove_dev_file_by_strs(const std::vector<std::string> &id_
 }
 
 VideoStreamer::VideoStreamer(   std::atomic_bool &system_on
-                                , std::string headset_ip
-                                , int stereo_video_width
-                                , int stereo_video_height
-                                , int main_video_width
-                                , int main_video_height)
+                                , const std::string headset_ip
+                                , const int stereo_flag
+                                , const int stereo_video_width
+                                , const int stereo_video_height
+                                , const int main_video_width
+                                , const int main_video_height)
     : system_on(system_on)
     , headset_ip(headset_ip)
+    , stereo_flag(stereo_flag)
+    , stereo_video_width(stereo_video_width)
+    , stereo_video_height(stereo_video_height)
+    , main_video_width(main_video_width)
+    , main_video_height(main_video_height)
 {
 }
 
@@ -337,7 +342,6 @@ int VideoStreamer::initGStreamer(void)
     GError *error_audio = NULL;
 
     init_dev_files();
-
     gst_init (NULL, NULL);
 
     size_t size = 128;
@@ -362,7 +366,7 @@ int VideoStreamer::initGStreamer(void)
     }
 
     // mono mode
-    if (is_stereo)
+    if (stereo_flag)
     {
         // one eye of the stereo camera
         if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
@@ -474,7 +478,7 @@ int VideoStreamer::deinitGStreamer(void)
     return 0;
 }
 
-VideoStreamer::run(CtrlClient &conn)
+int VideoStreamer::run(CtrlClient &conn)
 {
     int stream_state = 0;
 

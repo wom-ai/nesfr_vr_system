@@ -12,7 +12,7 @@ protected:
     std::atomic_bool &system_on;
 
     std::string headset_ip = "192.168.0.XXX";
-    bool is_stereo = true;
+    int stereo_flag = true;
     int stereo_video_width = 1280;
     int stereo_video_height = 720;
 
@@ -29,7 +29,13 @@ protected:
     GstElement *pipeline_audio = nullptr;
 
 public:
-    VideoStreamer(std::atomic_bool &system_on, std::string headset_ip, int stereo_video_width, int stereo_video_height, int main_video_width, int main_video_height);
+    VideoStreamer(  std::atomic_bool &system_on
+                    , std::string headset_ip
+                    , const int stereo_flag
+                    , const int stereo_video_width
+                    , const int stereo_video_height
+                    , const int main_video_width
+                    , const int main_video_height);
     ~VideoStreamer(void);
 
     int run(CtrlClient &conn);

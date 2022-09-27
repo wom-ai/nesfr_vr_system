@@ -14,7 +14,7 @@ static const std::string headset_A_mac_addr = "2c:26:17:eb:ae:28";
 // Headset B
 static const std::string headset_B_mac_addr = "2c:26:17:e9:08:3e";
 
-static bool is_stereo = true;
+static bool stereo_flag = true;
 static int stereo_video_width = 0;
 static int stereo_video_height = 0;
 
@@ -48,7 +48,7 @@ bool init_options(int argc, char *argv[])
                 printf("B\n");
                 break;
             case 'm':
-                is_stereo = false; // mono
+                stereo_flag = false; // mono
                 break;
             case 'd':
                 printf("dims: %s\n", optarg);
@@ -102,7 +102,7 @@ bool init_options(int argc, char *argv[])
     printf("=======================================================\n");
 
     printf("=======================================================\n");
-    printf(" video mode: (%s)\n", is_stereo? "stereo": "mono" );
+    printf(" video mode: (%s)\n", stereo_flag? "stereo": "mono" );
     printf("=======================================================\n");
     return 0;
 }
@@ -258,7 +258,7 @@ int main (int argc, char *argv[])
     printf(">> VR Headset ip: %s\n", headset_ip.c_str());
 
     std::atomic_bool system_on(true);
-    VideoStreamer streamer(system_on, headset_ip, stereo_video_width, stereo_video_height, main_video_width, main_video_height);
+    VideoStreamer streamer(system_on, headset_ip, stereo_flag, stereo_video_width, stereo_video_height, main_video_width, main_video_height);
 
     if (streamer.initGStreamer() < 0)
     {

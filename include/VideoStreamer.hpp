@@ -1,11 +1,14 @@
 #ifndef VIDEO_STREAMER_HPP
 #define VIDEO_STREAMER_HPP
 
+#include "CtrlClient.hpp"
+#include "BaseStereoCamera.hpp"
+
 #include <gst/gst.h>
 #include <atomic>
 #include <vector>
 #include <string>
-#include "CtrlClient.hpp"
+#include <memory>
 
 class VideoStreamer {
 protected:
@@ -42,6 +45,8 @@ public:
 
     int initGStreamer(void);
     int deinitGStreamer(void);
+
+    std::shared_ptr<BaseStereoCamera> stereo_camera_ptr = nullptr;
 };
 
 #endif //VIDEO_STREAMER_HPP

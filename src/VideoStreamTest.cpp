@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <unistd.h>
 
+#include <memory>
 #include <stdexcept>
 #include <cstdio>
 #include <string>

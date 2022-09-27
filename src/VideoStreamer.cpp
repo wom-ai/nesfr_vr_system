@@ -1,4 +1,6 @@
 #include "VideoStreamer.hpp"
+#include "CtrlClient.hpp"
+#include "V4L2StereoCamera.hpp"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -11,13 +13,11 @@
 #include <string>
 #include <cstring>
 
-#include "CtrlClient.hpp"
 
 
 using dev_vec = std::vector<std::string>;
 using dev_map = std::map<std::string, std::string>;
 
-static dev_map file_card_map;
 
 bool configure_stereo_camera(const std::string &dev_file)
 {
@@ -65,6 +65,13 @@ bool configure_stereo_camera(const std::string &dev_file)
     }
     return true;
 }
+
+
+/*
+ * references
+ *   - https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-ctl/v4l2-ctl-common.cpp
+ */
+static dev_map file_card_map;
 
 static const char *prefixes[] = {
     "video",
@@ -324,6 +331,7 @@ VideoStreamer::VideoStreamer(   std::atomic_bool &system_on
     , main_video_width(main_video_width)
     , main_video_height(main_video_height)
 {
+    stereo_camera_ptr = std::make_shared<V4L2StereoCamera>();
 }
 
 VideoStreamer::~VideoStreamer(void)
@@ -347,40 +355,37 @@ int VideoStreamer::initGStreamer(void)
     size_t size = 128;
     char buf[size];
 
+    if (stereo_camera_ptr->init(stereo_video_width, stereo_video_height, !stereo_flag) < 0) {
+        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
     sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=30/1 ", stereo_video_width, stereo_video_height);
     std::string stereo_video_conf_str = buf;
 
     // one eye of the stereo camera
-    if (find_and_remove_dev_file_by_strs(stereo_camera_left_strs, stereo_camera_left_dev_file)) {
+    if (stereo_camera_ptr->getGStreamVideoSourceLeftStr(stereo_camera_left_dev_file) == 0) {
         printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
-        if (!configure_stereo_camera(stereo_camera_left_dev_file))
-        {
-            fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Left)\n");
-            return -1;
-        }
         pipeline_stereo_left = gst_parse_launch
           (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, " + stereo_video_conf_str+ "  ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
         //gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
     } else {
-        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
+        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+        return -1;
     }
 
     // mono mode
     if (stereo_flag)
     {
         // one eye of the stereo camera
-        if (find_and_remove_dev_file_by_strs(stereo_camera_right_strs, stereo_camera_right_dev_file)) {
+        if (stereo_camera_ptr->getGStreamVideoSourceRightStr(stereo_camera_right_dev_file) == 0) {
             printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
-            if (!configure_stereo_camera(stereo_camera_right_dev_file))
-            {
-                fprintf(stderr, "[ERROR] Couldn't configure Stereo Camera (Right)\n");
-                return -1;
-            }
             pipeline_stereo_right = gst_parse_launch
               (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
             //gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
         } else {
-            fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
+            fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+            return -1;
         }
     }
 

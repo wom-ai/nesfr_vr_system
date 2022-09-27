@@ -13,60 +13,6 @@
 #include <string>
 #include <cstring>
 
-
-
-using dev_vec = std::vector<std::string>;
-using dev_map = std::map<std::string, std::string>;
-
-
-bool configure_stereo_camera(const std::string &dev_file)
-{
-    int n;
-    FILE *pin = nullptr;
-    char buffer [128];
-    char line[1024];
-    memset(buffer, 0, sizeof(buffer));
-    n = sprintf (buffer, "v4l2-ctl --device=%s -l", dev_file.c_str());
-    printf(">> call [%s]\n", buffer);
-    pin = popen(buffer,"r");
-    if (!pin)
-        return false;
-    else {
-        while (fgets(line, 1024, pin)) {
-            printf(">> %s", line);
-        }
-        pclose(pin);
-    }
-
-    memset(buffer, 0, sizeof(buffer));
-    n = sprintf (buffer, "v4l2-ctl --device=%s -c white_balance_temperature_auto=0", dev_file.c_str());
-    printf(">> call [%s]\n", buffer);
-    pin = popen(buffer,"r");
-    if (!pin)
-        return false;
-    else {
-        while (fgets(line, 1024, pin)) {
-            printf(">> %s", line);
-        }
-        pclose(pin);
-    }
-
-    memset(buffer, 0, sizeof(buffer));
-    n = sprintf (buffer, "v4l2-ctl --device=%s -C white_balance_temperature_auto", dev_file.c_str());
-    printf(">> call [%s]\n", buffer);
-    pin = popen(buffer,"r");
-    if (!pin)
-        return false;
-    else {
-        while (fgets(line, 1024, pin)) {
-            printf(">> %s", line);
-        }
-        pclose(pin);
-    }
-    return true;
-}
-
-
 /*
  * references
  *   - https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-ctl/v4l2-ctl-common.cpp

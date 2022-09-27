@@ -162,6 +162,10 @@ void init_signal(void)
 #endif
 }
 
+/*
+ * references
+ *   - https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-ctl/v4l2-ctl-common.cpp
+ */
 static bool is_v4l_dev(const char *name)
 {
     for (unsigned i = 0; prefixes[i]; i++) {

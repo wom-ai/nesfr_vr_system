@@ -3,6 +3,7 @@
 
 #include "CtrlClient.hpp"
 #include "BaseStereoCamera.hpp"
+#include "BaseCamera.hpp"
 
 #include <gst/gst.h>
 #include <atomic>
@@ -49,6 +50,7 @@ public:
     int deinitGStreamer(void);
 
     std::shared_ptr<BaseStereoCamera> stereo_camera_ptr = nullptr;
+    std::shared_ptr<BaseCamera> camera_ptr = nullptr;
 };
 
 #endif //VIDEO_STREAMER_HPP

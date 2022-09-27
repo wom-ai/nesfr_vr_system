@@ -31,6 +31,7 @@ target_link_libraries(${PROJECT_NAME} ${GSTREAMER_LIBRARIES})
 #building target executable
 add_executable( VideoStreamTest
                 src/V4L2Device.cpp
+                src/V4L2Camera.cpp
                 src/V4L2StereoCamera.cpp
                 src/VideoStreamTest.cpp
                 src/VideoStreamer.cpp

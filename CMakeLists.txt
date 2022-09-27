@@ -29,7 +29,7 @@ add_executable(${PROJECT_NAME} src/video_stream.cpp src/CtrlClient.cpp)
 target_link_libraries(${PROJECT_NAME} ${GSTREAMER_LIBRARIES})
 
 #building target executable
-add_executable(VideoStreameTest src/VideoStreamTest.cpp src/VideoStreamer.cpp src/CtrlClient.cpp)
+add_executable(VideoStreamTest src/VideoStreamTest.cpp src/VideoStreamer.cpp src/CtrlClient.cpp)
 
 #linking Gstreamer library with target executable
-target_link_libraries(VideoStreameTest ${GSTREAMER_LIBRARIES})
+target_link_libraries(VideoStreamTest ${GSTREAMER_LIBRARIES})

@@ -686,7 +686,7 @@ int deinit_gstreamer( GstElement *&pipeline_stereo_left
     return 0;
 }
 
-int main_loop(    CtrlClient conn 
+int main_loop(    CtrlClient &conn
                 , GstElement *&pipeline_stereo_left
                 , GstElement *&pipeline_stereo_right
                 , GstElement *&pipeline_main

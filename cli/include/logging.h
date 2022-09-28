@@ -2,6 +2,12 @@
 
 #include <spdlog/spdlog.h>
 
+#ifdef SPDLOG_VER_MAJOR
+#if SPDLOG_VERSION > 10000
+#include <spdlog/sinks/stdout_color_sinks.h>
+#endif //SPDLOG_VERSION > 10000
+#endif //SPDLOG_VER_MAJOR
+
 #define LOG_INFO(fmt, ...)  \
     console->info(fmt, ##__VA_ARGS__);
 

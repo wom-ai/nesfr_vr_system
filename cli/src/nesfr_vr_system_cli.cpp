@@ -1,7 +1,9 @@
 #include "config.h"
+#include "logging.h"
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+
 
 // filesystem
 /*
@@ -17,14 +19,30 @@ namespace filesystem = std::experimental::filesystem;
 namespace filesystem = std::filesystem;
 #endif
 
+#ifdef __SPDLOG__
+auto console = spdlog::stdout_color_mt("Main");
+#endif
+
+void build_info(void)
+{
+    LOG_INFO("GCC __VERSION__={}", __VERSION__);
+    LOG_INFO("CPP STANDARD __cplusplus={}", __cplusplus);
+    LOG_INFO("Build Date={}", __DATE__);
+    LOG_INFO("Git Branch=[{}]", __GIT_BRANCH__);
+    LOG_INFO("    +-> commit {}", __GIT_COMMIT_HASH__);
+}
+
 int main(int argc, char *argv[])
 {
+
+    build_info();
 
     const std::string cache_dir_path = CACHE_DIR_PATH;
     const std::string config_file_path = cache_dir_path + "/" + CONFIG_FILE_NAME;
 
     if (filesystem::exists(config_file_path))
     {
+        // https://cplusplus.com/reference/istream/istream/tellg/
         char *buf = nullptr;
         std::ifstream is(config_file_path);
         if (!is.is_open())

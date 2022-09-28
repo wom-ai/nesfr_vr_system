@@ -6,7 +6,23 @@ cmake_minimum_required(VERSION 3.10)
 
 project(nesfr_vr_system_cli) #Project name
 
+# reference: https://stackoverflow.com/questions/51727566/how-to-make-git-commit-hash-available-in-c-code-without-needless-recompiling
+execute_process(
+    COMMAND git rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Get the latest commit hash
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 find_package(PkgConfig REQUIRED) #finding pkg-config is a helper tool
+
+find_package(spdlog REQUIRED)
 
 #using pkg-config to getting jsoncpp
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
@@ -33,6 +49,13 @@ target_include_directories(
     ${JSONCPP_INCLUDE_DIRS}
     )
 
+target_compile_definitions(
+    ${PROJECT_NAME} PUBLIC
+    __SPDLOG__
+    __GIT_BRANCH__="${GIT_BRANCH}"
+    __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
+    )
+
 target_compile_options(
     ${PROJECT_NAME} PUBLIC
     -Wall -Werror -fpermissive
@@ -43,5 +66,7 @@ target_link_libraries(
     ${PROJECT_NAME}
     ${JSONCPP_LIBRARIES}
     stdc++fs
+    spdlog::spdlog
+    pthread
     )
 

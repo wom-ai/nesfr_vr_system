@@ -37,16 +37,20 @@ int main(int argc, char *argv[])
 
     build_info();
 
+    const std::string home_dir_path = getenv("HOME");
     const std::string cache_dir_path = CACHE_DIR_PATH;
-    const std::string config_file_path = cache_dir_path + "/" + CONFIG_FILE_NAME;
+    const std::string config_file_path = home_dir_path + cache_dir_path + "/" + CONFIG_FILE_NAME;
 
+    LOG_INFO("Trying to load {}", config_file_path.c_str());
     if (filesystem::exists(config_file_path))
     {
         // https://cplusplus.com/reference/istream/istream/tellg/
         char *buf = nullptr;
         std::ifstream is(config_file_path);
-        if (!is.is_open())
+        if (!is.is_open()) {
+            LOG_ERR("{} is already opened.");
             return -1;
+        }
 
         is.seekg(0, is.end);
         int len = is.tellg();
@@ -58,11 +62,12 @@ int main(int argc, char *argv[])
 
         std::cout.write(buf, len);
 
+
         delete[] buf;
     }
     else
     {
-
+        LOG_ERR("No HW configuration");
         return -1;
     }
 

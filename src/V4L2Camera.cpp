@@ -14,16 +14,16 @@ int V4L2Camera::init(const int video_width, const int video_height)
     _init_dev_files();
 
     if (_find_dev_file_by_strs(camera_card_strs, camera_dev_file)) {
-        printf(">> Camera (Right) (%s)\n", camera_dev_file.c_str());
+        printf(">> Camera (%s)\n", camera_dev_file.c_str());
         // TODO
         /*
         if (!_configure_camera(camera_dev_file))
         {
-            fprintf(stderr, "[ERROR] Couldn't configure Camera (Right)\n");
+            fprintf(stderr, "[ERROR] Couldn't configure Camera\n");
             return -1;
         }*/
     } else {
-        fprintf(stderr, "[ERROR] Couldn't open Camera (Right)\n");
+        fprintf(stderr, "[ERROR] Couldn't find Camera's device file\n");
         return -1;
     }
     return 0;

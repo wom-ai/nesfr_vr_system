@@ -118,20 +118,20 @@ int VideoStreamer::initGStreamer(void)
 //        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! rtpL8pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
 #endif
     if (camera_ptr->init(camera_desc_main.width, camera_desc_main.height) < 0) {
-        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
-        return -1;
-    }
-
-    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=%d/1 ", camera_desc_main.width, camera_desc_main.height, camera_desc_main.framerate);
-    std::string main_video_conf_str = buf;
-
-    if (camera_ptr->getGStreamVideoSourceStr(main_camera_dev_file) == 0) {
-        printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
-        pipeline_main = gst_parse_launch
-          (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
-        //gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
+        fprintf(stderr, "[WARN] %s:%d\n", __FUNCTION__, __LINE__);
     } else {
-        fprintf(stderr, "[WARN] Couldn't open Main Camera\n");
+        sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=%d/1 ", camera_desc_main.width, camera_desc_main.height, camera_desc_main.framerate);
+        std::string main_video_conf_str = buf;
+
+        if (camera_ptr->getGStreamVideoSourceStr(main_camera_dev_file) == 0) {
+            printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
+            pipeline_main = gst_parse_launch
+              (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
+            //gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
+        } else {
+            fprintf(stderr, "[WARN] Couldn't open Main Camera\n");
+        }
+        printf("[INFO] Main Camera set up\n");
     }
 
     sprintf(buf, "device=%s ", audioin_desc.name.c_str());
@@ -140,6 +140,7 @@ int VideoStreamer::initGStreamer(void)
     if (audioin_desc.type.compare("pulsesrc") == 0) {
         pipeline_audio = gst_parse_launch
             (("pulsesrc " + audio_conf_str + " ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+        printf("[INFO] Audio-In set up\n");
     } else {
         fprintf(stderr, "[WARN] Couldn't open Audio-In\n");
     }

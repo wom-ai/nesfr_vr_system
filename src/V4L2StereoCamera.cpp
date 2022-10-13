@@ -24,7 +24,7 @@ int V4L2StereoCamera::init(const int stereo_video_width, const int stereo_video_
             return -1;
         }
     } else {
-        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Left)\n");
+        fprintf(stderr, "[ERROR] Couldn't find Stereo Camera's device file (Left)\n");
         return -1;
     }
 
@@ -40,7 +40,7 @@ int V4L2StereoCamera::init(const int stereo_video_width, const int stereo_video_
             return -1;
         }
     } else {
-        fprintf(stderr, "[ERROR] Couldn't open Stereo Camera (Right)\n");
+        fprintf(stderr, "[ERROR] Couldn't find Stereo Camera's device file (Right)\n");
         return -1;
     }
     return 0;

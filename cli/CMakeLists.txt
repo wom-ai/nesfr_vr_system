@@ -27,10 +27,18 @@ find_package(spdlog REQUIRED)
 #using pkg-config to getting jsoncpp
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
+#using pkg-config to getting Gstreamer
+pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
+
 #building target executable
 add_executable(
     ${PROJECT_NAME}
     src/nesfr_vr_system_cli.cpp
+    ../nesfr_vr_video_streamer/src/V4L2Device.cpp
+    ../nesfr_vr_video_streamer/src/V4L2Camera.cpp
+    ../nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
+    ../nesfr_vr_video_streamer/src/VideoStreamer.cpp
+    ../nesfr_vr_video_streamer/src/CtrlClient.cpp
     )
 
 set_property(
@@ -47,6 +55,8 @@ target_include_directories(
     ${PROJECT_NAME} PUBLIC
     ./include
     ${JSONCPP_INCLUDE_DIRS}
+    ${GSTREAMER_INCLUDE_DIRS}
+    ../nesfr_vr_video_streamer/include
     )
 
 target_compile_definitions(
@@ -65,6 +75,7 @@ target_compile_options(
 target_link_libraries(
     ${PROJECT_NAME}
     ${JSONCPP_LIBRARIES}
+    ${GSTREAMER_LIBRARIES}
     stdc++fs
     spdlog::spdlog
     pthread

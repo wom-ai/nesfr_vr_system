@@ -1,0 +1,55 @@
+{
+    "gimbal":
+    {
+        "type": "RS2",
+        "name": ""
+    },
+    "base_rover":
+    {
+        "type": "NESFR4",
+        "name": ""
+    },
+
+    "video_stream_device":
+    {
+        "main_camera":
+        {
+            "type": "v4l2",
+            "names": ["USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam", "HD Pro Webcam C920"],
+            "width": 1280,
+            "height": 720,
+            "framerate": 30
+        },
+        "stereo_camera":
+        {
+            "left":
+            {
+                "type": "v4l2",
+                "names": ["Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5"],
+                "width": 1920,
+                "height": 1080,
+                "framerate": 30
+            },
+            "right":
+            {
+                "type": "v4l2",
+                "names": ["Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5"],
+                "width": 1920,
+                "height": 1080,
+                "framerate": 30
+            }
+        },
+        "audio-in":
+        {
+            "type": "pulsesrc",
+            "name": "alsa_input.usb-Creative_Technology_Ltd_Sound_BlasterX_G1_00141088-00.analog-stereo",
+            "bitrate": 0
+        },
+        "audio-out":
+        {
+            "type": "pulsesink",
+            "name": "",
+            "bitrate": 0
+        }
+    }
+}

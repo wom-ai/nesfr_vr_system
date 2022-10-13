@@ -134,6 +134,7 @@ int CtrlClient::_write(const void *buf, size_t len)
 
 int CtrlClient::write_cmd(void)
 {
+    return 0;
 }
 
 int CtrlClient::write_id()

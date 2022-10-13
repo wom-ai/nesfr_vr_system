@@ -10,12 +10,13 @@
 
 bool V4L2Device::_configure_camera(const std::string &dev_file)
 {
-    int n;
     FILE *pin = nullptr;
     char buffer [128];
     char line[1024];
     memset(buffer, 0, sizeof(buffer));
-    n = sprintf (buffer, "v4l2-ctl --device=%s -l", dev_file.c_str());
+    if (sprintf (buffer, "v4l2-ctl --device=%s -l", dev_file.c_str()) < 0)
+        return false;
+
     printf(">> call [%s]\n", buffer);
     pin = popen(buffer,"r");
     if (!pin)
@@ -28,7 +29,8 @@ bool V4L2Device::_configure_camera(const std::string &dev_file)
     }
 
     memset(buffer, 0, sizeof(buffer));
-    n = sprintf (buffer, "v4l2-ctl --device=%s -c white_balance_temperature_auto=0", dev_file.c_str());
+    if (sprintf (buffer, "v4l2-ctl --device=%s -c white_balance_temperature_auto=0", dev_file.c_str()) < 0)
+        return false;
     printf(">> call [%s]\n", buffer);
     pin = popen(buffer,"r");
     if (!pin)
@@ -41,7 +43,8 @@ bool V4L2Device::_configure_camera(const std::string &dev_file)
     }
 
     memset(buffer, 0, sizeof(buffer));
-    n = sprintf (buffer, "v4l2-ctl --device=%s -C white_balance_temperature_auto", dev_file.c_str());
+    if (sprintf (buffer, "v4l2-ctl --device=%s -C white_balance_temperature_auto", dev_file.c_str()) < 0)
+        return false;
     printf(">> call [%s]\n", buffer);
     pin = popen(buffer,"r");
     if (!pin)

@@ -15,13 +15,13 @@ static const std::string headset_A_mac_addr = "2c:26:17:eb:ae:28";
 static const std::string headset_B_mac_addr = "2c:26:17:e9:08:3e";
 
 static bool stereo_flag = true;
-static int stereo_video_width = 0;
-static int stereo_video_height = 0;
+static unsigned int stereo_video_width = 0;
+static unsigned int stereo_video_height = 0;
 
 //static const int main_video_width = 1920;
 //static const int main_video_height = 1080;
-static const int main_video_width = 1280;
-static const int main_video_height = 720;
+static const unsigned int main_video_width = 1280;
+static const unsigned int main_video_height = 720;
 //static const int main_video_width = 640;
 //static const int main_video_height = 480;
 
@@ -258,7 +258,26 @@ int main (int argc, char *argv[])
     printf(">> VR Headset ip: %s\n", headset_ip.c_str());
 
     std::atomic_bool system_on(true);
-    VideoStreamer streamer(system_on, headset_ip, stereo_flag, stereo_video_width, stereo_video_height, main_video_width, main_video_height);
+
+    struct CameraDesc camera_desc_left = {
+        "v4l2",
+        {"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",},
+        stereo_video_width,
+        stereo_video_height,
+        30 /*framerate*/};
+    struct CameraDesc camera_desc_right = {
+        "v4l2",
+        {"Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5",},
+        stereo_video_width,
+        stereo_video_height,
+        30 /*framerate*/};
+    struct CameraDesc camera_desc_main = {
+        "v4l2",
+        {"USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam", "HD Pro Webcam C920"},
+        main_video_width,
+        main_video_height,
+        30 /*framerate*/};
+    VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, camera_desc_main);
 
     if (streamer.initGStreamer() < 0)
     {

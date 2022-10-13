@@ -14,23 +14,22 @@
 #include <string>
 #include <cstring>
 
-VideoStreamer::VideoStreamer(   std::atomic_bool &system_on
-                                , const std::string headset_ip
-                                , const int stereo_flag
-                                , const int stereo_video_width
-                                , const int stereo_video_height
-                                , const int main_video_width
-                                , const int main_video_height)
+VideoStreamer::VideoStreamer(  std::atomic_bool &system_on
+                , std::string headset_ip
+                , const int stereo_flag
+                , const struct CameraDesc &camera_desc_left
+                , const struct CameraDesc &camera_desc_right
+                , const struct CameraDesc &camera_desc_main
+                )
     : system_on(system_on)
     , headset_ip(headset_ip)
     , stereo_flag(stereo_flag)
-    , stereo_video_width(stereo_video_width)
-    , stereo_video_height(stereo_video_height)
-    , main_video_width(main_video_width)
-    , main_video_height(main_video_height)
+    , camera_desc_left(camera_desc_left)
+    , camera_desc_right(camera_desc_right)
+    , camera_desc_main(camera_desc_main)
 {
-    stereo_camera_ptr = std::make_shared<V4L2StereoCamera>();
-    camera_ptr = std::make_shared<V4L2Camera>();
+    stereo_camera_ptr = std::make_shared<V4L2StereoCamera>(camera_desc_left.names, camera_desc_right.names);
+    camera_ptr = std::make_shared<V4L2Camera>(camera_desc_main.names);
 }
 
 VideoStreamer::~VideoStreamer(void)
@@ -53,12 +52,12 @@ int VideoStreamer::initGStreamer(void)
     size_t size = 128;
     char buf[size];
 
-    if (stereo_camera_ptr->init(stereo_video_width, stereo_video_height, !stereo_flag) < 0) {
+    if (stereo_camera_ptr->init(camera_desc_left.width, camera_desc_left.height, !stereo_flag) < 0) {
         fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
-    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=30/1 ", stereo_video_width, stereo_video_height);
+    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=%d/1 ", camera_desc_left.width, camera_desc_left.height, camera_desc_left.framerate);
     std::string stereo_video_conf_str = buf;
 
     // one eye of the stereo camera
@@ -114,7 +113,12 @@ int VideoStreamer::initGStreamer(void)
 //    pipeline_audio = gst_parse_launch
 //        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! rtpL8pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
 #else
-    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=30/1 ", main_video_width, main_video_height);
+    if (camera_ptr->init(camera_desc_main.width, camera_desc_main.height) < 0) {
+        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=%d/1 ", camera_desc_main.width, camera_desc_main.height, camera_desc_main.framerate);
     std::string main_video_conf_str = buf;
 
     if (camera_ptr->getGStreamVideoSourceStr(main_camera_dev_file) == 0) {

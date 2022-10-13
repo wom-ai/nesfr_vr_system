@@ -2,8 +2,10 @@
 
 #include <string>
 
-V4L2StereoCamera::V4L2StereoCamera(void)
+V4L2StereoCamera::V4L2StereoCamera(const std::vector<std::string> &camera_names_left, const std::vector<std::string> &camera_names_right)
 {
+    this->stereo_camera_left_strs = camera_names_left;
+    this->stereo_camera_right_strs = camera_names_right;
 }
 
 int V4L2StereoCamera::init(const int stereo_video_width, const int stereo_video_height, const int mono_flag)

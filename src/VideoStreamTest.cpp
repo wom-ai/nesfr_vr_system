@@ -277,7 +277,17 @@ int main (int argc, char *argv[])
         main_video_width,
         main_video_height,
         30 /*framerate*/};
-    VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, camera_desc_main);
+    struct AudioInDesc audioin_desc = {
+        "pulsesrc",
+        "alsa_input.usb-Creative_Technology_Ltd_Sound_BlasterX_G1_00141088-00.analog-stereo",
+        //"alsa_input.usb-046d_HD_Pro_Webcam_C920_9D5E927F-02.analog-stereo",
+        //"alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo",
+        0 /*bitrate*/};
+    struct AudioOutDesc audioout_desc = {
+        "pulsesink",
+        "",
+        0 /*bitrate*/};
+    VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, camera_desc_main, audioin_desc, audioout_desc);
 
     if (streamer.initGStreamer() < 0)
     {

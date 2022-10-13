@@ -4,6 +4,7 @@
 #include "CtrlClient.hpp"
 #include "BaseStereoCamera.hpp"
 #include "BaseCamera.hpp"
+#include "BaseAudio.hpp"
 
 #include <gst/gst.h>
 #include <atomic>
@@ -21,6 +22,8 @@ protected:
     struct CameraDesc camera_desc_left;
     struct CameraDesc camera_desc_right;
     struct CameraDesc camera_desc_main;
+    struct AudioInDesc audioin_desc;
+    struct AudioOutDesc audioout_desc;
 
     GstElement *pipeline_stereo_left = nullptr;
     GstElement *pipeline_stereo_right = nullptr;
@@ -34,6 +37,8 @@ public:
                     , const struct CameraDesc &camera_desc_left
                     , const struct CameraDesc &camera_desc_right
                     , const struct CameraDesc &camera_desc_main
+                    , const struct AudioInDesc &audioin_desc
+                    , const struct AudioOutDesc &audioout_desc
                     );
     ~VideoStreamer(void);
 

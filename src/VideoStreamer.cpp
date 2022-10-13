@@ -20,6 +20,8 @@ VideoStreamer::VideoStreamer(  std::atomic_bool &system_on
                 , const struct CameraDesc &camera_desc_left
                 , const struct CameraDesc &camera_desc_right
                 , const struct CameraDesc &camera_desc_main
+                , const struct AudioInDesc &audioin_desc
+                , const struct AudioOutDesc &audioout_desc
                 )
     : system_on(system_on)
     , headset_ip(headset_ip)
@@ -27,6 +29,8 @@ VideoStreamer::VideoStreamer(  std::atomic_bool &system_on
     , camera_desc_left(camera_desc_left)
     , camera_desc_right(camera_desc_right)
     , camera_desc_main(camera_desc_main)
+    , audioin_desc(audioin_desc)
+    , audioout_desc(audioout_desc)
 {
     stereo_camera_ptr = std::make_shared<V4L2StereoCamera>(camera_desc_left.names, camera_desc_right.names);
     camera_ptr = std::make_shared<V4L2Camera>(camera_desc_main.names);
@@ -112,7 +116,7 @@ int VideoStreamer::initGStreamer(void)
 
 //    pipeline_audio = gst_parse_launch
 //        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! rtpL8pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
-#else
+#endif
     if (camera_ptr->init(camera_desc_main.width, camera_desc_main.height) < 0) {
         fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
         return -1;
@@ -127,12 +131,19 @@ int VideoStreamer::initGStreamer(void)
           (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
         //gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
     } else {
-        fprintf(stderr, "[ERROR] Couldn't open Main Camera\n");
+        fprintf(stderr, "[WARN] Couldn't open Main Camera\n");
     }
 
-    pipeline_audio = gst_parse_launch
-        (("pulsesrc device=alsa_input.usb-046d_HD_Pro_Webcam_C920_9D5E927F-02.analog-stereo ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
-#endif
+    sprintf(buf, "device=%s ", audioin_desc.name.c_str());
+    std::string audio_conf_str = buf;
+
+    if (audioin_desc.type.compare("pulsesrc") == 0) {
+        pipeline_audio = gst_parse_launch
+            (("pulsesrc " + audio_conf_str + " ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+    } else {
+        fprintf(stderr, "[WARN] Couldn't open Audio-In\n");
+    }
+
     //gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
 
     if (error != NULL) {

@@ -138,9 +138,11 @@ int VideoStreamer::initGStreamer(void)
     std::string audio_conf_str = buf;
 
     if (audioin_desc.type.compare("pulsesrc") == 0) {
+//        pipeline_audio = gst_parse_launch
+//            (("pulsesrc " + audio_conf_str + " ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
         pipeline_audio = gst_parse_launch
-            (("pulsesrc " + audio_conf_str + " ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
-        printf("[INFO] Audio-In set up\n");
+            (("pulsesrc " + audio_conf_str + " ! alawenc ! rtppcmapay !application/x-rtp, payload=8, clock-rate=8000 ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+        printf("[INFO] Audio-In set up (%s)\n", audio_conf_str.c_str());
     } else {
         fprintf(stderr, "[WARN] Couldn't open Audio-In\n");
     }

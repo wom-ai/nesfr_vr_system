@@ -132,9 +132,9 @@ int CtrlClient::_write(const void *buf, size_t len)
     return ret;
 }
 
-int CtrlClient::write_cmd(void)
+int CtrlClient::write_cmd(HeadsetCtrlCmdMsg &msg)
 {
-    return 0;
+    return _write((const void *)&msg, sizeof(msg));
 }
 
 int CtrlClient::write_id()

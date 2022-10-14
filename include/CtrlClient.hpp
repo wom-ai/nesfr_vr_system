@@ -7,6 +7,7 @@ enum class HeadsetCtrlCmd{
     NONE = 0,
     REGISTER,
     STREAM_STATE,
+    STEREO_CAMERA_PROPERTY,
 };
 
 enum class RemoteCtrlCmd{
@@ -39,9 +40,10 @@ class CtrlClient {
 private: 
     int sockfd = 0;
     std::string hostname;
-    struct CmdHeader predefined_header;
 
 public:
+    struct CmdHeader predefined_header;
+
     CtrlClient(const std::string &hostname);
 
     int init(void);
@@ -56,7 +58,7 @@ public:
 
     int _write(const void *buf, size_t len);
     int write_id(void);
-    int write_cmd(void);
+    int write_cmd(HeadsetCtrlCmdMsg &msg);
     int write_streamstate(const int play);
 };
 

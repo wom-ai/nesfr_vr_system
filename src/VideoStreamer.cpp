@@ -218,6 +218,13 @@ int VideoStreamer::run(CtrlClient &conn)
             return -1;
         }
 
+
+        HeadsetCtrlCmdMsg msg = { conn.predefined_header, HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY, (int)camera_desc_left.width, (int)camera_desc_left.height, 0};
+        if (conn.write_cmd(msg) < 0) {
+            fprintf(stderr, "[ERROR] write_cmd() failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
         if (conn.write_streamstate(stream_state) < 0) {
             fprintf(stderr, "[ERROR] write_streamstate() failed, %s(%d)\n", strerror(errno), errno);
             return -1;

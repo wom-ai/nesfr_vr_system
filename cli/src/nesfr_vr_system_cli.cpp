@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <csignal>
 
+#include <unistd.h>
+
 #include "CtrlClient.hpp"
 #include "VideoStreamer.hpp"
 // filesystem

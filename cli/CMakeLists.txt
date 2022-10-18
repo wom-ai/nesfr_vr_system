@@ -53,6 +53,7 @@ set_property(
 
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
+    ../include
     ./include
     ${JSONCPP_INCLUDE_DIRS}
     ${GSTREAMER_INCLUDE_DIRS}

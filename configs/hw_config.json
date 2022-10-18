@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "gimbal":
     {
         "type": "RS2",
@@ -12,32 +13,21 @@
 
     "video_stream_device":
     {
-        "main_camera":
-        {
-            "type": "v4l2",
-            "names": ["USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam", "HD Pro Webcam C920"],
-            "width": 1280,
-            "height": 720,
-            "framerate": 30
-        },
         "stereo_camera":
         {
             "left":
             {
                 "type": "v4l2",
-                "names": ["Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5"],
-                "width": 1920,
-                "height": 1080,
-                "framerate": 30
+                "names": ["Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5"]
             },
             "right":
             {
                 "type": "v4l2",
-                "names": ["Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5"],
-                "width": 1920,
-                "height": 1080,
-                "framerate": 30
-            }
+                "names": ["Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5"]
+            },
+            "width": 1280,
+            "height": 720,
+            "framerate": 30
         },
         "audio-in":
         {

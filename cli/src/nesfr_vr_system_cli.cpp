@@ -228,6 +228,19 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    if (root.isMember("version") && root["version"].asUInt() == CONFIG_VERSION) {
+        LOG_INFO("Version matched.");
+    } else {
+        LOG_ERR("HW configuraton file's version is not compatible with this application.");
+        if (root.isMember("version")) {
+            LOG_ERR("\tFile version={}, Application version={}.", root["version"].asUInt(), CONFIG_VERSION);
+        } else {
+            LOG_ERR("\tNo version info in the config file.");
+        }
+
+        return -1;
+    }
+
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal found.");
     } else {
@@ -244,9 +257,9 @@ int main(int argc, char *argv[])
         struct CameraDesc camera_desc_left = {
             root["video_stream_device"]["stereo_camera"]["left"]["type"].asString(),
             {/*"Stereo Vision 1", "Stereo Vision 1: Stereo Vision ", "Video Capture 5",*/},
-            root["video_stream_device"]["stereo_camera"]["left"]["width"].asUInt(),
-            root["video_stream_device"]["stereo_camera"]["left"]["height"].asUInt(),
-            root["video_stream_device"]["stereo_camera"]["left"]["framerate"].asUInt(),
+            root["video_stream_device"]["stereo_camera"]["width"].asUInt(),
+            root["video_stream_device"]["stereo_camera"]["height"].asUInt(),
+            root["video_stream_device"]["stereo_camera"]["framerate"].asUInt(),
         };
         {
             const Json::Value items = root["video_stream_device"]["stereo_camera"]["left"]["names"];
@@ -257,9 +270,9 @@ int main(int argc, char *argv[])
         struct CameraDesc camera_desc_right = {
             root["video_stream_device"]["stereo_camera"]["right"]["type"].asString(),
             {/*"Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5",*/},
-            root["video_stream_device"]["stereo_camera"]["right"]["width"].asUInt(),
-            root["video_stream_device"]["stereo_camera"]["right"]["height"].asUInt(),
-            root["video_stream_device"]["stereo_camera"]["right"]["framerate"].asUInt(),
+            root["video_stream_device"]["stereo_camera"]["width"].asUInt(),
+            root["video_stream_device"]["stereo_camera"]["height"].asUInt(),
+            root["video_stream_device"]["stereo_camera"]["framerate"].asUInt(),
         };
         {
             const Json::Value items = root["video_stream_device"]["stereo_camera"]["right"]["names"];

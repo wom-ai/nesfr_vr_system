@@ -155,9 +155,13 @@ int VideoStreamer::initGStreamer(void)
 
     if (audioin_desc.type.compare("pulsesrc") == 0) {
 //        pipeline_audio = gst_parse_launch
-//            (("pulsesrc " + audio_conf_str + " ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+//            (("pulsesrc " + audio_conf_str + " ! alawenc ! rtppcmapay !application/x-rtp, payload=8, clock-rate=8000 ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
         pipeline_audio = gst_parse_launch
-            (("pulsesrc " + audio_conf_str + " ! alawenc ! rtppcmapay !application/x-rtp, payload=8, clock-rate=8000 ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+            (("pulsesrc " + audio_conf_str + " ! rtpL16pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+//        pipeline_audio = gst_parse_launch
+//            (("pulsesrc " + audio_conf_str + "! alawenc ! rtpgstpay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
+//        pipeline_audio = gst_parse_launch
+//            (("pulsesrc " + audio_conf_str + " ! avenc_aac ! rtpmp4apay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
         printf("[INFO] Audio-In set up (%s)\n", audio_conf_str.c_str());
     } else {
         fprintf(stderr, "[WARN] Couldn't open Audio-In\n");

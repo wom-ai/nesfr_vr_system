@@ -19,6 +19,7 @@ VideoStreamer::VideoStreamer(  std::atomic_bool &system_on
                 , const int stereo_flag
                 , const struct CameraDesc &camera_desc_left
                 , const struct CameraDesc &camera_desc_right
+                , const struct StereoViewProperty &stereo_view_property
                 , const struct CameraDesc &camera_desc_main
                 , const struct AudioInDesc &audioin_desc
                 , const struct AudioOutDesc &audioout_desc
@@ -28,6 +29,7 @@ VideoStreamer::VideoStreamer(  std::atomic_bool &system_on
     , stereo_flag(stereo_flag)
     , camera_desc_left(camera_desc_left)
     , camera_desc_right(camera_desc_right)
+    , stereo_view_property(stereo_view_property)
     , camera_desc_main(camera_desc_main)
     , audioin_desc(audioin_desc)
     , audioout_desc(audioout_desc)
@@ -239,10 +241,14 @@ int VideoStreamer::run(CtrlClient &conn)
             return -1;
         }
 
-
-        HeadsetCtrlCmdMsg msg = { conn.predefined_header, HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY, (int)camera_desc_left.width, (int)camera_desc_left.height, 0};
+        HeadsetCtrlCmdMsg msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY, sizeof(StereoViewProperty)), 0, 0, 0,};
         if (conn.write_cmd(msg) < 0) {
             fprintf(stderr, "[ERROR] write_cmd() failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
+        if (conn.write_data((const void*)&stereo_view_property, sizeof(StereoViewProperty)) < 0) {
+            fprintf(stderr, "[ERROR] write_data(HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY) failed, %s(%d)\n", strerror(errno), errno);
             return -1;
         }
 

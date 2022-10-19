@@ -287,7 +287,41 @@ int main (int argc, char *argv[])
         "pulsesink",
         "",
         0 /*bitrate*/};
-    VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, camera_desc_main, audioin_desc, audioout_desc);
+
+        struct StereoViewProperty property = {
+            (float)stereo_video_width,
+            (float)stereo_video_height,
+            {-10.0f, 0.0f},
+            {10.0f, 0.0f},
+
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            {
+                0.0f,
+                0.0f,
+                0.0f,
+            },
+            {
+                0.0f,
+                0.0f,
+            },
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            {
+                0.0f,
+                0.0f,
+                0.0f,
+            },
+            {
+                0.0f,
+                0.0f,
+            },
+        };
+    VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, property, camera_desc_main, audioin_desc, audioout_desc);
 
     if (streamer.initDevices() < 0)
     {

@@ -2,15 +2,6 @@
 #define BASE_CAMERA_HPP
 
 #include <string>
-#include <vector>
-
-struct CameraDesc{
-    std::string type;
-    std::vector<std::string> names;
-    unsigned int width;
-    unsigned int height;
-    unsigned int framerate;
-};
 
 class BaseCamera
 {

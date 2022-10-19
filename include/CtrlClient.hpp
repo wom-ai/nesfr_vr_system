@@ -3,6 +3,8 @@
 
 #include <string>
 
+#define CTRL_MSG_VERSION 1
+
 enum class HeadsetCtrlCmd{
     NONE = 0,
     REGISTER,
@@ -17,12 +19,14 @@ enum class RemoteCtrlCmd{
 };
 
 struct CmdHeader {
+    unsigned int version = CTRL_MSG_VERSION;
     char name[16];
+    unsigned int cmd;
+    unsigned int data_size;
 };
 
 struct HeadsetCtrlCmdMsg {
     struct CmdHeader header;
-    HeadsetCtrlCmd cmd;
     int param0;
     int param1;
     int param2;
@@ -52,14 +56,17 @@ public:
     int conn(const std::string &ip_str);
     void run(void);
 
+    struct CmdHeader build_header(const unsigned int cmd, const unsigned int data_size);
+
     int _read(void *buf, size_t len);
     int readcmd(struct RemoteCtrlCmdMsg &msg);
-
 
     int _write(const void *buf, size_t len);
     int write_id(void);
     int write_cmd(HeadsetCtrlCmdMsg &msg);
-    int write_streamstate(const int play);
+    int write_streamstate(const unsigned int play);
+
+    int write_data(const void *data_ptr, unsigned int size);
 };
 
 #endif //CTRLCLIENT_HPP

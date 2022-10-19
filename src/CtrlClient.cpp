@@ -92,6 +92,14 @@ int CtrlClient::deinit(void)
     return 0;
 }
 
+struct CmdHeader CtrlClient::build_header(const unsigned int cmd, const unsigned int data_size)
+{
+    struct CmdHeader header = predefined_header;
+    header.cmd = cmd;
+    header.data_size = data_size;
+    return header;
+}
+
 int CtrlClient::_read(void *buf, size_t len)
 {
     int ret;
@@ -139,12 +147,18 @@ int CtrlClient::write_cmd(HeadsetCtrlCmdMsg &msg)
 
 int CtrlClient::write_id()
 {
-    HeadsetCtrlCmdMsg msg = { predefined_header, HeadsetCtrlCmd::REGISTER, 0, 0, 0};
+    HeadsetCtrlCmdMsg msg = { build_header((unsigned int)HeadsetCtrlCmd::REGISTER, 0), 0, 0, 0,};
     return _write((const void *)&msg, sizeof(msg));
 }
 
-int CtrlClient::write_streamstate(const int play)
+int CtrlClient::write_streamstate(const unsigned int play)
 {
-    HeadsetCtrlCmdMsg msg = { predefined_header, HeadsetCtrlCmd::STREAM_STATE, play, 0, 0};
+    HeadsetCtrlCmdMsg msg = { build_header((unsigned int)HeadsetCtrlCmd::STREAM_STATE, 0), (int)play, 0, 0,};
     return _write((const void *)&msg, sizeof(msg));
+}
+
+
+int CtrlClient::write_data(const void *data_ptr, unsigned int data_size)
+{
+    return _write(data_ptr, data_size);
 }

@@ -23,6 +23,8 @@ private:
 
     int stereo_video_width = 1280;
     int stereo_video_height = 720;
+
+    int initialized = 0;
 };
 
 #endif // V4L2_STEREO_CAMERA_HPP

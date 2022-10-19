@@ -289,7 +289,7 @@ int main (int argc, char *argv[])
         0 /*bitrate*/};
     VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, camera_desc_main, audioin_desc, audioout_desc);
 
-    if (streamer.initGStreamer() < 0)
+    if (streamer.initDevices() < 0)
     {
         perror ("gstreamer initialization failed.");
         return -1;
@@ -308,7 +308,7 @@ int main (int argc, char *argv[])
     conn.deinit();
     printf("End process...\n");
 
-    if (streamer.deinitGStreamer() < 0)
+    if (streamer.deinitDevices() < 0)
     {
         perror ("gstreamer deinitialization failed.");
         return -1;

@@ -44,6 +44,9 @@ public:
 
     int run(CtrlClient &conn);
 
+    int initDevices(void);
+    int deinitDevices(void);
+
     int initGStreamer(void);
     int deinitGStreamer(void);
 

@@ -26,6 +26,8 @@ int V4L2Camera::init(const int video_width, const int video_height)
         fprintf(stderr, "[ERROR] Couldn't find Camera's device file\n");
         return -1;
     }
+
+    initialized = 1;
     return 0;
 }
 
@@ -36,7 +38,7 @@ int V4L2Camera::deinit(void)
 
 int V4L2Camera::isValid(void)
 {
-    return 0;
+    return initialized;
 }
 
 int V4L2Camera::getGStreamVideoSourceStr(std::string &str)

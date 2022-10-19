@@ -43,6 +43,8 @@ int V4L2StereoCamera::init(const int stereo_video_width, const int stereo_video_
         fprintf(stderr, "[ERROR] Couldn't find Stereo Camera's device file (Right)\n");
         return -1;
     }
+
+    initialized = 1;
     return 0;
 }
 
@@ -53,7 +55,7 @@ int V4L2StereoCamera::deinit(void)
 
 int V4L2StereoCamera::isValid(void)
 {
-    return 0;
+    return initialized;
 }
 
 int V4L2StereoCamera::getGStreamVideoSourceLeftStr(std::string &str)

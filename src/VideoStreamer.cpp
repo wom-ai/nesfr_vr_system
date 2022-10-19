@@ -40,8 +40,29 @@ VideoStreamer::~VideoStreamer(void)
 {
 }
 
+int VideoStreamer::initDevices(void)
+{
+    printf("[INFO] %s\n", __FUNCTION__);
+    if (stereo_camera_ptr->init(camera_desc_left.width, camera_desc_left.height, !stereo_flag) < 0) {
+        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    if (camera_ptr->init(camera_desc_main.width, camera_desc_main.height) < 0) {
+        fprintf(stderr, "[WARN] %s:%d\n", __FUNCTION__, __LINE__);
+    }
+    return 0;
+}
+
+int VideoStreamer::deinitDevices(void)
+{
+    printf("[INFO] %s\n", __FUNCTION__);
+    return 0;
+}
+
 int VideoStreamer::initGStreamer(void)
 {
+    printf("[INFO] %s\n", __FUNCTION__);
     std::string main_camera_dev_file;
     std::string stereo_camera_left_dev_file;
     std::string stereo_camera_right_dev_file;
@@ -55,11 +76,6 @@ int VideoStreamer::initGStreamer(void)
 
     size_t size = 128;
     char buf[size];
-
-    if (stereo_camera_ptr->init(camera_desc_left.width, camera_desc_left.height, !stereo_flag) < 0) {
-        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
-        return -1;
-    }
 
     sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=%d/1 ", camera_desc_left.width, camera_desc_left.height, camera_desc_left.framerate);
     std::string stereo_video_conf_str = buf;
@@ -117,9 +133,7 @@ int VideoStreamer::initGStreamer(void)
 //    pipeline_audio = gst_parse_launch
 //        (("pulsesrc device=alsa_input.usb-046d_Logitech_StreamCam_6A86D645-02.analog-stereo ! rtpL8pay ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
 #endif
-    if (camera_ptr->init(camera_desc_main.width, camera_desc_main.height) < 0) {
-        fprintf(stderr, "[WARN] %s:%d\n", __FUNCTION__, __LINE__);
-    } else {
+    if (camera_ptr->isValid()) {
         sprintf(buf, "width=%d, height=%d, pixel-aspect-ratio=1/1, framerate=%d/1 ", camera_desc_main.width, camera_desc_main.height, camera_desc_main.framerate);
         std::string main_video_conf_str = buf;
 
@@ -174,6 +188,7 @@ int VideoStreamer::initGStreamer(void)
 
 int VideoStreamer::deinitGStreamer(void)
 {
+    printf("[INFO] %s\n", __FUNCTION__);
     // gst_object_unref (bus);
     if (pipeline_stereo_left) {
         gst_element_set_state (pipeline_stereo_left, GST_STATE_NULL);
@@ -211,6 +226,12 @@ int VideoStreamer::run(CtrlClient &conn)
             fprintf(stderr, "[WARN] connectto() failed retry after 1 sec\n");
             sleep(1);
             continue;
+        }
+
+        if (initGStreamer() < 0)
+        {
+            perror ("gstreamer initialization failed.");
+            return -1;
         }
 
         if (conn.write_id() < 0) {
@@ -283,6 +304,11 @@ int VideoStreamer::run(CtrlClient &conn)
                 }
             }
             usleep(100);
+        }
+        if (deinitGStreamer() < 0)
+        {
+            perror ("gstreamer deinitialization failed.");
+            return -1;
         }
     }
     return 0;

@@ -19,6 +19,8 @@ private:
 
     int video_width = 1280;
     int video_height = 720;
+
+    int initialized = 0;
 };
 
 #endif // V4L2_CAMERA_HPP

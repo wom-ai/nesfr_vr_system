@@ -1,5 +1,5 @@
-#include "config.h"
-#include "logging.h"
+#include "config.hpp"
+#include "logging.hpp"
 #include <json/json.h>
 #include <cstdio>
 #include <fstream>
@@ -302,8 +302,45 @@ int main(int argc, char *argv[])
             root["video_stream_device"]["audio-out"]["bitrate"].asUInt(),
         };
 
+        const Json::Value camera_offset = root["video_stream_device"]["stereo_camera"]["camera_offset"];
+        const Json::Value camera_intrinsic0 = root["video_stream_device"]["stereo_camera"]["camera_intrinsic0"];
+        const Json::Value camera_intrinsic1 = root["video_stream_device"]["stereo_camera"]["camera_intrinsic1"];
+        struct StereoViewProperty property = {
+            (float)root["video_stream_device"]["stereo_camera"]["width"].asUInt(),
+            (float)root["video_stream_device"]["stereo_camera"]["height"].asUInt(),
+            {camera_offset["left_x"].asFloat(), camera_offset["left_y"].asFloat()},
+            {camera_offset["right_x"].asFloat(), camera_offset["right_y"].asFloat()},
+
+            camera_intrinsic0["fx"].asFloat(),
+            camera_intrinsic0["fy"].asFloat(),
+            camera_intrinsic0["cx"].asFloat(),
+            camera_intrinsic0["cy"].asFloat(),
+            {
+                camera_intrinsic0["k1"].asFloat(),
+                camera_intrinsic0["k2"].asFloat(),
+                camera_intrinsic0["k3"].asFloat(),
+            },
+            {
+                camera_intrinsic0["p1"].asFloat(),
+                camera_intrinsic0["p2"].asFloat(),
+            },
+            camera_intrinsic1["fx"].asFloat(),
+            camera_intrinsic1["fy"].asFloat(),
+            camera_intrinsic1["cx"].asFloat(),
+            camera_intrinsic1["cy"].asFloat(),
+            {
+                camera_intrinsic1["k1"].asFloat(),
+                camera_intrinsic1["k2"].asFloat(),
+                camera_intrinsic1["k3"].asFloat(),
+            },
+            {
+                camera_intrinsic1["p1"].asFloat(),
+                camera_intrinsic1["p2"].asFloat(),
+            },
+        };
+
         bool stereo_flag = true;
-        VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, camera_desc_main, audioin_desc, audioout_desc);
+        VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, property, camera_desc_main, audioin_desc, audioout_desc);
 
         if (streamer.initDevices() < 0)
         {

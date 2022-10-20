@@ -25,8 +25,8 @@
                 "type": "v4l2",
                 "names": ["Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5"]
             },
-            "width": 1280,
-            "height": 720,
+            "width": 1920,
+            "height": 1080,
             "framerate": 30,
             "camera_offset":
             {
@@ -74,7 +74,7 @@
         "audio-in":
         {
             "type": "pulsesrc",
-            "name": "alsa_input.usb-Creative_Technology_Ltd_Sound_BlasterX_G1_00139754-00.analog-stereo",
+            "name": "alsa_input.usb-Creative_Technology_Ltd_Sound_BlasterX_G1_00140011-00.analog-stereo",
             "bitrate": 0
         },
         "audio-out":

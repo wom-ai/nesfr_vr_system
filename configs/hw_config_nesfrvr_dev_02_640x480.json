@@ -25,14 +25,14 @@
                 "type": "v4l2",
                 "names": ["Stereo Vision 2", "Stereo Vision 2: Stereo Vision ", "Video Capture 5"]
             },
-            "width": 1280,
-            "height": 720,
+            "width": 640,
+            "height": 480,
             "framerate": 30,
             "camera_offset":
             {
-                "left_x":     -10.0,
-                "left_y":     0.0,
-                "right_x":    10.0,
+                "left_x":     -20.0,
+                "left_y":     -40.0,
+                "right_x":    -30.0,
                 "right_y":    0.0
             },
             "camera_relative_pose":
@@ -42,10 +42,10 @@
             },
             "camera_intrinsic0":
             {
-                "fx":   649.98291315,
-                "fy":   649.5200055,
-                "cx":   948.25829987,
-                "cy":   562.09198792,
+                "fx":   288.881294733,
+                "fy":   288.675558,
+                "cx":   421.448133276,
+                "cy":   249.818661298,
 
                 "k1":   -0.21252438,
                 "k2":   0.03947589,
@@ -57,10 +57,10 @@
             },
             "camera_intrinsic1":
             {
-                "fx":   649.98291315,
-                "fy":   649.5200055,
-                "cx":   948.25829987,
-                "cy":   562.09198792,
+                "fx":   288.881294733,
+                "fy":   288.675558,
+                "cx":   421.448133276,
+                "cy":   249.818661298,
 
                 "k1":   -0.21252438,
                 "k2":   0.03947589,
@@ -74,7 +74,7 @@
         "audio-in":
         {
             "type": "pulsesrc",
-            "name": "alsa_input.usb-Creative_Technology_Ltd_Sound_BlasterX_G1_00141088-00.analog-stereo",
+            "name": "alsa_input.usb-Creative_Technology_Ltd_Sound_BlasterX_G1_00139754-00.analog-stereo",
             "bitrate": 0
         },
         "audio-out":

@@ -220,6 +220,24 @@ int VideoStreamer::deinitGStreamer(void)
     return 0;
 }
 
+int VideoStreamer::playStream(void)
+{
+    if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
+    if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
+    if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
+    if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+    return 0;
+}
+
+int VideoStreamer::stopStream(void)
+{
+    if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
+    if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
+    if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
+    if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+    return 0;
+}
+
 int VideoStreamer::run(CtrlClient &conn)
 {
     int stream_state = 0;
@@ -271,10 +289,7 @@ int VideoStreamer::run(CtrlClient &conn)
                 {
                     printf(">>> STOP\n");
                     stream_state = 0;
-                    if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
-                    if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
-                    if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
-                    if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                    stopStream();
                 }
                 conn.deinit();
                 break;
@@ -284,10 +299,7 @@ int VideoStreamer::run(CtrlClient &conn)
                         {
                             printf(">>> PLAY\n");
                             stream_state = 1;
-                            if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
-                            if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
-                            if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
-                            if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
+                            playStream();
                             if (conn.write_streamstate(stream_state) < 0) {
                                 fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
                                 return -1;
@@ -298,10 +310,7 @@ int VideoStreamer::run(CtrlClient &conn)
                         {
                             printf(">>> STOP\n");
                             stream_state = 0;
-                            if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
-                            if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
-                            if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
-                            if (pipeline_audio) gst_element_set_state(pipeline_audio, GST_STATE_PAUSED);
+                            stopStream();
                             if (conn.write_streamstate(stream_state) < 0) {
                                 fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
                                 return -1;

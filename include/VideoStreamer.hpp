@@ -78,6 +78,9 @@ protected:
     GstElement *pipeline_main = nullptr;
     GstElement *pipeline_audio = nullptr;
 
+    std::shared_ptr<BaseStereoCamera> stereo_camera_ptr = nullptr;
+    std::shared_ptr<BaseCamera> camera_ptr = nullptr;
+
 public:
     VideoStreamer(  std::atomic_bool &system_on
                     , std::string headset_ip
@@ -99,8 +102,8 @@ public:
     int initGStreamer(void);
     int deinitGStreamer(void);
 
-    std::shared_ptr<BaseStereoCamera> stereo_camera_ptr = nullptr;
-    std::shared_ptr<BaseCamera> camera_ptr = nullptr;
+    int playStream(void);
+    int stopStream(void);
 };
 
 #endif //VIDEO_STREAMER_HPP

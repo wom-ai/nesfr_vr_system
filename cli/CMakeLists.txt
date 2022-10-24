@@ -33,7 +33,8 @@ pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 #building target executable
 add_executable(
     ${PROJECT_NAME}
-    src/nesfr_vr_system_cli.cpp
+    #src/nesfr_vr_system_cli.cpp
+    ../src/NesfrVR.cpp
     ../nesfr_vr_video_streamer/src/V4L2Device.cpp
     ../nesfr_vr_video_streamer/src/V4L2Camera.cpp
     ../nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp

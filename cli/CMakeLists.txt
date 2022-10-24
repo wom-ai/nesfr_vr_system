@@ -39,6 +39,10 @@ add_executable(
     ../nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
     ../nesfr_vr_video_streamer/src/VideoStreamer.cpp
     ../nesfr_vr_video_streamer/src/CtrlClient.cpp
+    ../nesfr_vr_ctrl/src/custom_crc16.c
+    ../nesfr_vr_ctrl/src/custom_crc32.c
+    ../nesfr_vr_ctrl/src/RS2Ctrl.cpp
+    ../nesfr_vr_ctrl/src/rs2_vr_ctrl.cpp
     )
 
 set_property(
@@ -58,6 +62,7 @@ target_include_directories(
     ${JSONCPP_INCLUDE_DIRS}
     ${GSTREAMER_INCLUDE_DIRS}
     ../nesfr_vr_video_streamer/include
+    ../nesfr_vr_ctrl/include
     )
 
 target_compile_definitions(
@@ -65,11 +70,12 @@ target_compile_definitions(
     __SPDLOG__
     __GIT_BRANCH__="${GIT_BRANCH}"
     __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
+    NESFR_VR_MAIN_FUNC
     )
 
 target_compile_options(
     ${PROJECT_NAME} PUBLIC
-    -Wall -Werror -fpermissive
+    -Wall -Werror
     )
 
 #linking library with target executable

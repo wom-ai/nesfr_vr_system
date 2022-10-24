@@ -12,6 +12,9 @@
 
 #include "CtrlClient.hpp"
 #include "VideoStreamer.hpp"
+#include "rs2_vr_ctrl.hpp"
+#include "PIDCtrl.hpp"
+#include "VRState.h"
 // filesystem
 /*
  * references
@@ -168,7 +171,7 @@ public:
 };
 
 
-void signal_handler(int s)
+static void signal_handler(int s)
 {
     throw InterruptException(s);
 }
@@ -188,8 +191,6 @@ void init_signal(void)
 
 int main(int argc, char *argv[])
 {
-    Json::Value root;
-
     build_info();
 
     //put the headset's ip here
@@ -206,6 +207,14 @@ int main(int argc, char *argv[])
     printf("Device Name (=hostname): %s\n", hostname);
     printf("=======================================================\n");
 
+    Json::Value root;
+    VideoStreamer *streamer_ptr = nullptr;
+    CtrlClient conn(hostname);
+    const uint8_t can_ch_num = 0;
+    CANComm can_comm(can_ch_num);
+    RS2Ctrl rs2_ctrl(can_comm);
+
+    RS2VRCtrl *rs2_vr_ctrl_ptr = nullptr;
 
     if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
         fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
@@ -241,8 +250,11 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    // init
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal found.");
+        rs2_vr_ctrl_ptr = new RS2VRCtrl(system_on, rs2_ctrl);
+        rs2_vr_ctrl_ptr->init();
     } else {
         LOG_WARN("No Gimbal configuration.");
     }
@@ -340,36 +352,45 @@ int main(int argc, char *argv[])
         };
 
         bool stereo_flag = true;
-        VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, property, camera_desc_main, audioin_desc, audioout_desc);
+        streamer_ptr = new VideoStreamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, property, camera_desc_main, audioin_desc, audioout_desc);
 
-        if (streamer.initDevices() < 0)
+        if (streamer_ptr->initDevices() < 0)
         {
-            perror ("gstreamer initialization failed.");
+            perror ("gstreamer_ptr initialization failed.");
             return -1;
         }
-        CtrlClient conn(hostname);
 
-        try {
-            streamer.run(conn);
-
-        } catch (InterruptException &e) {
-            fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());
-        } catch (std::exception &e) {
-            fprintf(stderr, "[ERROR]: %s\n", e.what());
-        }
-
-        conn.deinit();
-        printf("End process...\n");
-
-        if (streamer.deinitDevices() < 0)
-        {
-            perror ("gstreamer deinitialization failed.");
-            return -1;
-        }
     } else {
         LOG_ERR("No Video Streame Device configuration.");
         return -1;
     }
 
+    try {
+        streamer_ptr->run(conn);
+
+    } catch (InterruptException &e) {
+        fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());
+    } catch (std::exception &e) {
+        fprintf(stderr, "[ERROR]: %s\n", e.what());
+    }
+
+    // deinit
+    if (root.isMember("gimbal")) {
+        LOG_INFO("Gimbal - deinit");
+    }
+
+    if (root.isMember("base_rover")) {
+        LOG_INFO("Base Rover - deinit");
+    }
+    if (root.isMember("video_stream_device")) {
+        LOG_INFO("Video Stream - deinit");
+        if (streamer_ptr->deinitDevices() < 0)
+        {
+            perror ("gstreamer_ptr deinitialization failed.");
+            return -1;
+        }
+    }
+
+    conn.deinit();
     return 0;
 }

@@ -191,7 +191,7 @@ NesfrVR::NesfrVR(void)
 {
 }
 
-int NesfrVR::initVideoStream(void)
+int NesfrVR::_initVideoStream(void)
 {
     struct CameraDesc camera_desc_left = {
         root["video_stream_device"]["stereo_camera"]["left"]["type"].asString(),
@@ -279,12 +279,106 @@ int NesfrVR::initVideoStream(void)
     };
 
     bool stereo_flag = true;
-    streamer_ptr = new VideoStreamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, property, camera_desc_main, audioin_desc, audioout_desc);
+    streamer_ptr = std::make_shared<VideoStreamer>(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, property, camera_desc_main, audioin_desc, audioout_desc);
 
     if (streamer_ptr->initDevices() < 0)
     {
         perror ("gstreamer_ptr initialization failed.");
         return -1;
+    }
+    return 0;
+}
+
+int NesfrVR::_mainLoop(CtrlClient &conn)
+{
+    while (system_on) {
+        if (conn.init()) {
+            return -1;
+        }
+        if (conn.conn(headset_ip)) {
+            LOG_WARN("[WARN] connectto() failed retry after 1 sec\n");
+            sleep(1);
+            continue;
+        }
+
+        if (streamer_ptr->initGStreamer() < 0)
+        {
+            perror ("gstreamer initialization failed.");
+            return -1;
+        }
+
+        if (conn.write_id() < 0) {
+            fprintf(stderr, "[ERROR] write_id() failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
+        HeadsetCtrlCmdMsg msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY, sizeof(StereoViewProperty)), 0, 0, 0,};
+        if (conn.write_cmd(msg) < 0) {
+            fprintf(stderr, "[ERROR] write_cmd() failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
+        struct StereoViewProperty stereo_view_property = streamer_ptr->getStereoViewProperty();
+        if (conn.write_data((const void*)&stereo_view_property, sizeof(StereoViewProperty)) < 0) {
+            fprintf(stderr, "[ERROR] write_data(HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY) failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
+        if (conn.write_streamstate(stream_state) < 0) {
+            fprintf(stderr, "[ERROR] write_streamstate() failed, %s(%d)\n", strerror(errno), errno);
+            return -1;
+        }
+
+        while (system_on) {
+            struct RemoteCtrlCmdMsg msg;
+            int ret = conn.readcmd(msg);
+            if (ret < 0) {
+                fprintf(stderr, "[ERROR] read failed, %s(%d)\n", strerror(errno), errno);
+            } else if ( ret == 0) {
+                LOG_ERR("connection closed\n");
+                {
+                    LOG_INFO(">>> STOP\n");
+                    stream_state = 0;
+                    streamer_ptr->stopStream();
+                }
+                conn.deinit();
+                break;
+            } else {
+                switch (msg.cmd) {
+                    case  RemoteCtrlCmd::PLAY:
+                        {
+                            LOG_INFO(">>> PLAY\n");
+                            stream_state = 1;
+                            streamer_ptr->playStream();
+                            if (conn.write_streamstate(stream_state) < 0) {
+                                fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+                                return -1;
+                            }
+                            break;
+                        }
+                    case RemoteCtrlCmd::STOP:
+                        {
+                            printf(">>> STOP\n");
+                            stream_state = 0;
+                            streamer_ptr->stopStream();
+                            if (conn.write_streamstate(stream_state) < 0) {
+                                fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
+                                return -1;
+                            }
+                            break;
+                        }
+                    case RemoteCtrlCmd::NONE:
+                    default:
+                        break;
+                }
+            }
+            usleep(100);
+        }
+        if (streamer_ptr->deinitGStreamer() < 0)
+        {
+            perror ("gstreamer deinitialization failed.");
+            return -1;
+        }
     }
     return 0;
 }
@@ -344,7 +438,7 @@ int NesfrVR::run(void)
     // initialize
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal found");
-        rs2_vr_ctrl_ptr = new RS2VRCtrl(system_on, rs2_ctrl);
+        rs2_vr_ctrl_ptr = std::make_shared<RS2VRCtrl>(system_on, rs2_ctrl);
         rs2_vr_ctrl_ptr->init();
     } else {
         LOG_WARN("No Gimbal configuration.");
@@ -357,7 +451,7 @@ int NesfrVR::run(void)
     }
 
     if (root.isMember("video_stream_device")) {
-        initVideoStream();
+        _initVideoStream();
     } else {
         LOG_ERR("No Video Streame Device configuration.");
         return -1;
@@ -365,17 +459,20 @@ int NesfrVR::run(void)
 
     // main loop
     try {
-        streamer_ptr->run(conn);
-
+        _mainLoop(conn);
     } catch (InterruptException &e) {
-        fprintf(stderr, "Terminated by Interrrupt %s\n", e.what());
+        LOG_WARN("Terminated by Interrrupt {}\n", e.what());
+        system_on = {false};
     } catch (std::exception &e) {
-        fprintf(stderr, "[ERROR]: %s\n", e.what());
+        LOG_ERR("[ERROR]: %s\n", e.what());
+        system_on = {false};
     }
 
     // finalize
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal - deinit");
+        rs2_vr_ctrl_ptr->deinit();
+        rs2_vr_ctrl_ptr = nullptr;
     }
 
     if (root.isMember("base_rover")) {
@@ -388,6 +485,7 @@ int NesfrVR::run(void)
             perror ("gstreamer_ptr deinitialization failed.");
             return -1;
         }
+        streamer_ptr = nullptr;
     }
 
     conn.deinit();

@@ -104,6 +104,8 @@ public:
 
     int playStream(void);
     int stopStream(void);
+
+    const struct StereoViewProperty &getStereoViewProperty(void) { return stereo_view_property; }
 };
 
 #endif //VIDEO_STREAMER_HPP

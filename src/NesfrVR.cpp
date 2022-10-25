@@ -289,8 +289,20 @@ int NesfrVR::_initVideoStream(void)
     return 0;
 }
 
+int NesfrVR::_initGimbalCtrl(void)
+{
+    return 0;
+}
+
+int NesfrVR::_initRoverCtrl(void)
+{
+    return 0;
+}
+
 int NesfrVR::_mainLoop(CtrlClient &conn)
 {
+    //streamer_ptr->warmUpStream();
+
     while (system_on) {
         if (conn.init()) {
             return -1;
@@ -438,6 +450,10 @@ int NesfrVR::run(void)
     // initialize
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal found");
+        if (_initGimbalCtrl()) {
+            LOG_ERR("_initGimbalCtrl() failed");
+            return -1;
+        }
         rs2_vr_ctrl_ptr = std::make_shared<RS2VRCtrl>(system_on, rs2_ctrl);
         rs2_vr_ctrl_ptr->init();
     } else {
@@ -446,12 +462,19 @@ int NesfrVR::run(void)
 
     if (root.isMember("base_rover")) {
         LOG_INFO("Base Rover found");
+        if (_initRoverCtrl()) {
+            LOG_ERR("_initRoverCtrl() failed");
+            return -1;
+        }
     } else {
         LOG_WARN("No Base Rover configuration.");
     }
 
     if (root.isMember("video_stream_device")) {
-        _initVideoStream();
+        if (_initVideoStream()) {
+            LOG_ERR("_initVideoStream() failed");
+            return -1;
+        }
     } else {
         LOG_ERR("No Video Streame Device configuration.");
         return -1;

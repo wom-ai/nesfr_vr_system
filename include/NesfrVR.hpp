@@ -21,6 +21,8 @@ protected:
 public:
     NesfrVR(void);
     int _initVideoStream(void);
+    int _initGimbalCtrl(void);
+    int _initRoverCtrl(void);
     int run(void);
 
     int _mainLoop(CtrlClient &conn);

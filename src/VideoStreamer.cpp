@@ -242,7 +242,7 @@ int VideoStreamer::run(CtrlClient &conn)
 {
     int stream_state = 0;
 
-    while (true) {
+    while (system_on) {
         if (conn.init()) {
             return -1;
         }
@@ -279,7 +279,7 @@ int VideoStreamer::run(CtrlClient &conn)
             return -1;
         }
 
-        while (true) {
+        while (system_on) {
             struct RemoteCtrlCmdMsg msg;
             int ret = conn.readcmd(msg);
             if (ret < 0) {

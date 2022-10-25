@@ -5,12 +5,6 @@
         "type": "RS2",
         "name": ""
     },
-    "base_rover":
-    {
-        "type": "NESFR4",
-        "name": ""
-    },
-
     "video_stream_device":
     {
         "stereo_camera":

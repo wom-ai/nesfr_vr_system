@@ -31,7 +31,7 @@ namespace filesystem = std::filesystem;
 #endif
 
 #ifdef __SPDLOG__
-auto console = spdlog::stdout_color_mt("Main");
+static auto console = spdlog::stdout_color_mt("Main");
 #endif
 
 static void build_info(void)
@@ -294,9 +294,22 @@ int NesfrVR::_initGimbalCtrl(void)
     return 0;
 }
 
-int NesfrVR::_initRoverCtrl(void)
+int NesfrVR::_initRoverController(void)
 {
-    return 0;
+
+    struct RoverDesc rover_desc = {
+        root["base_rover"]["type"].asString(),
+        root["base_rover"]["name"].asString(),
+    };
+    rover_controller_ptr = std::make_shared<RoverController>(system_on, rover_desc);
+    return rover_controller_ptr->initDevice();
+}
+
+int NesfrVR::_deinitRoverController(void)
+{
+    int ret = rover_controller_ptr->deinitDevice();
+    rover_controller_ptr = nullptr;
+    return ret;
 }
 
 int NesfrVR::_mainLoop(CtrlClient &conn)
@@ -462,8 +475,8 @@ int NesfrVR::run(void)
 
     if (root.isMember("base_rover")) {
         LOG_INFO("Base Rover found");
-        if (_initRoverCtrl()) {
-            LOG_ERR("_initRoverCtrl() failed");
+        if (_initRoverController()) {
+            LOG_ERR("_initRoverController() failed");
             return -1;
         }
     } else {
@@ -500,6 +513,10 @@ int NesfrVR::run(void)
 
     if (root.isMember("base_rover")) {
         LOG_INFO("Base Rover - deinit");
+        if (_deinitRoverController()) {
+            LOG_ERR("_deinitRoverController() failed");
+            return -1;
+        }
     }
     if (root.isMember("video_stream_device")) {
         LOG_INFO("Video Stream - deinit");

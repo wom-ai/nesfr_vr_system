@@ -76,6 +76,7 @@ target_compile_definitions(
     __GIT_BRANCH__="${GIT_BRANCH}"
     __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
     NESFR_VR_MAIN_FUNC
+    _AUDIO_GUIDE_
     )
 
 target_compile_options(

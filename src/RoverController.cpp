@@ -34,6 +34,8 @@ void RoverController::_ctrl_thread_func(void)
 
 int RoverController::initDevice(void)
 {
+    if (rover_ptr->init() < 0)
+        return -1;
     ctrl_thread_ptr = std::make_shared<std::thread>(&RoverController::_ctrl_thread_func, this);
     initialized = {true};
     return 0;
@@ -44,6 +46,8 @@ int RoverController::deinitDevice(void)
     if (ctrl_thread_ptr)
         ctrl_thread_ptr->join();
     ctrl_thread_ptr = nullptr;
+    if (rover_ptr->deinit() < 0)
+        return -1;
     initialized = {false};
     return 0;
 }

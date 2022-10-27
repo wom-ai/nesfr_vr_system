@@ -1,3 +1,6 @@
+#ifndef NESFR_VR_HPP
+#define NESFR_VR_HPP
+
 #include <string>
 #include <json/json.h>
 #include <memory>
@@ -30,3 +33,4 @@ public:
 
     int _mainLoop(CtrlClient &conn);
 };
+#endif // NESFR_VR_HPP

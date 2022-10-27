@@ -1,3 +1,6 @@
+#ifndef ROVER_CONTROLLER_HPP
+#define ROVER_CONTROLLER_HPP
+
 #include "BaseRover.hpp"
 
 #include <atomic>
@@ -42,3 +45,6 @@ public:
     int initSession(void);
     int deinitSession(void);
 };
+#endif // ROVER_CONTROLLER_HPP
+
+

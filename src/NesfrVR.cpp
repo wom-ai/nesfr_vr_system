@@ -422,14 +422,7 @@ int NesfrVR::run(void)
     printf("=======================================================\n");
     printf("Device Name (=hostname): %s\n", hostname);
     printf("=======================================================\n");
-#ifdef _AUDIO_GUIDE_
-    {
-        const filesystem::path home_dir_path{getenv("HOME")};
-        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"Intro.wav"};
-        if (AudioPlayer::playWavFile(data_dir_path.string()))
-            return -1;
-    }
-#endif
+
     CtrlClient conn(hostname);
     const uint8_t can_ch_num = 0;
     CANComm can_comm(can_ch_num);
@@ -454,6 +447,17 @@ int NesfrVR::run(void)
         return -1;
     }
 
+#ifdef _AUDIO_GUIDE_
+    AudioPlayer audio_player(root["video_stream_device"]["audio-out"]["type"].asString(),
+            root["video_stream_device"]["audio-out"]["name"].asString());
+    {
+        const filesystem::path home_dir_path{getenv("HOME")};
+        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"Intro.wav"};
+        if (audio_player.playWavFile(data_dir_path.string()))
+            return -1;
+    }
+#endif
+
     if (root.isMember("version") && root["version"].asUInt() == CONFIG_VERSION) {
         LOG_INFO("Version matched.");
     } else {
@@ -468,6 +472,22 @@ int NesfrVR::run(void)
     }
 
     // initialize
+    if (root.isMember("video_stream_device")) {
+        if (_initVideoStream()) {
+            LOG_ERR("_initVideoStream() failed");
+            return -1;
+        }
+#ifdef _AUDIO_GUIDE_
+        const filesystem::path home_dir_path{getenv("HOME")};
+        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"VideoStreamerIsReady.ogg"};
+        if (audio_player.playOggFile(data_dir_path.string()))
+            return -1;
+#endif
+    } else {
+        LOG_ERR("No Video Streame Device configuration.");
+        return -1;
+    }
+
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal found");
         if (_initGimbalCtrl()) {
@@ -479,7 +499,7 @@ int NesfrVR::run(void)
 #ifdef _AUDIO_GUIDE_
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"GimbalControllerIsReady.ogg"};
-        if (AudioPlayer::playOggFile(data_dir_path.string()))
+        if (audio_player.playOggFile(data_dir_path.string()))
             return -1;
 #endif
     } else {
@@ -495,34 +515,18 @@ int NesfrVR::run(void)
 #ifdef _AUDIO_GUIDE_
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"RoverIsReady.ogg"};
-        if (AudioPlayer::playOggFile(data_dir_path.string()))
+        if (audio_player.playOggFile(data_dir_path.string()))
             return -1;
 #endif
     } else {
         LOG_WARN("No Base Rover configuration.");
     }
 
-    if (root.isMember("video_stream_device")) {
-        if (_initVideoStream()) {
-            LOG_ERR("_initVideoStream() failed");
-            return -1;
-        }
-#ifdef _AUDIO_GUIDE_
-        const filesystem::path home_dir_path{getenv("HOME")};
-        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"VideoStreamerIsReady.ogg"};
-        if (AudioPlayer::playOggFile(data_dir_path.string()))
-            return -1;
-#endif
-    } else {
-        LOG_ERR("No Video Streame Device configuration.");
-        return -1;
-    }
-
 #ifdef _AUDIO_GUIDE_
     {
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"VrSystemIsReady.ogg"};
-        if (AudioPlayer::playOggFile(data_dir_path.string()))
+        if (audio_player.playOggFile(data_dir_path.string()))
             return -1;
     }
 #endif
@@ -538,21 +542,7 @@ int NesfrVR::run(void)
         system_on = {false};
     }
 
-    system_on = {false};
     // finalize
-    if (root.isMember("gimbal")) {
-        LOG_INFO("Gimbal - deinit");
-        rs2_vr_ctrl_ptr->deinit();
-        rs2_vr_ctrl_ptr = nullptr;
-    }
-
-    if (root.isMember("base_rover")) {
-        LOG_INFO("Base Rover - deinit");
-        if (_deinitRoverController()) {
-            LOG_ERR("_deinitRoverController() failed");
-            return -1;
-        }
-    }
     if (root.isMember("video_stream_device")) {
         LOG_INFO("Video Stream - deinit");
         if (streamer_ptr->deinitDevices() < 0)
@@ -562,6 +552,18 @@ int NesfrVR::run(void)
         }
         streamer_ptr = nullptr;
     }
+    if (root.isMember("gimbal")) {
+        LOG_INFO("Gimbal - deinit");
+        rs2_vr_ctrl_ptr->deinit();
+        rs2_vr_ctrl_ptr = nullptr;
+    }
+    if (root.isMember("base_rover")) {
+        LOG_INFO("Base Rover - deinit");
+        if (_deinitRoverController()) {
+            LOG_ERR("_deinitRoverController() failed");
+            return -1;
+        }
+    }
 
     conn.deinit();
 
@@ -569,7 +571,7 @@ int NesfrVR::run(void)
     {
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"VrSystemHasBeenShutDown.ogg"};
-        if (AudioPlayer::playOggFile(data_dir_path.string()))
+        if (audio_player.playOggFile(data_dir_path.string()))
             return -1;
     }
 #endif

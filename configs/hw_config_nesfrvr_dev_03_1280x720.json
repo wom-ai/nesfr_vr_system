@@ -69,7 +69,7 @@
         "audio-out":
         {
             "type": "pulsesink",
-            "name": "",
+            "name": "alsa_output.usb-Creative_Technology_Ltd_Sound_BlasterX_G1_00140011-00.analog-stereo",
             "bitrate": 0
         }
     }

@@ -4,15 +4,23 @@
 #include <gst/gst.h>
 
 class AudioPlayer {
-public:
+private:
+    std::string dev_type;
+    std::string dev_name;
 
-    static int playOggFile(const std::string &path, const double volume=1.0) {
+public:
+    AudioPlayer(const std::string dev_type, const std::string dev_name)
+        : dev_type(dev_type)
+        , dev_name(dev_name) {}
+
+    int playOggFile(const std::string &path, const double volume=1.0) {
 
         gst_init(nullptr, nullptr);
 
         printf("[INFO] %s:%d path=%s\n", __FUNCTION__, __LINE__, path.c_str());
         GError *error = NULL;
-        std::string launch_script = ("filesrc location=" + path + " ! oggdemux ! vorbisdec ! audioconvert ! audioresample ! volume volume=" + std::to_string(volume) + " ! level  ! autoaudiosink");
+        std::string audiosink = (dev_type + " device=" + dev_name);
+        std::string launch_script = ("filesrc location=" + path + " ! oggdemux ! vorbisdec ! audioconvert ! audioresample ! volume volume=" + std::to_string(volume) + " ! level  ! " + audiosink);
 
         printf("[INFO] %s:%d gst_parse_launch(%s)\n", __FUNCTION__, __LINE__, launch_script.c_str());
         GstElement *pipeline = gst_parse_launch (launch_script.c_str(), &error);
@@ -67,13 +75,14 @@ public:
     }
 
     //filesrc location=$FILE_LOC0 ! oggdemux ! vorbisdec ! audioconvert ! audioresample ! volume volume=1.2 ! level  ! autoaudiosink
-    static int playWavFile(const std::string &path, const double volume=1.0) {
+    int playWavFile(const std::string &path, const double volume=1.0) {
 
         gst_init(nullptr, nullptr);
 
         printf("[INFO] %s:%d path=%s\n", __FUNCTION__, __LINE__, path.c_str());
         GError *error = NULL;
-        std::string launch_script = ("filesrc location=" + path + " ! wavparse ! audioconvert ! audioresample ! volume volume=" + std::to_string(volume) + " ! level  ! autoaudiosink");
+        std::string audiosink = (dev_type + " device=" + dev_name);
+        std::string launch_script = ("filesrc location=" + path + " ! wavparse ! audioconvert ! audioresample ! volume volume=" + std::to_string(volume) + " ! level  ! " + audiosink);
 
         printf("[INFO] %s:%d gst_parse_launch(%s)\n", __FUNCTION__, __LINE__, launch_script.c_str());
         GstElement *pipeline = gst_parse_launch (launch_script.c_str(), &error);

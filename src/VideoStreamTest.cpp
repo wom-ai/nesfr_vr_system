@@ -25,6 +25,109 @@ static const unsigned int main_video_height = 720;
 //static const int main_video_width = 640;
 //static const int main_video_height = 480;
 
+static struct StereoViewProperty stereo_view_property = {};
+static struct StereoViewProperty property1920x1080 = {
+    1920.0f,
+    1080.0f,
+    {-10.0f, 0.0f},
+    {10.0f, 0.0f},
+
+    649.98291315,
+    649.5200055,
+    948.25829987,
+    562.09198792,
+    {
+        -0.21252438,
+        0.03947589,
+        -0.00312653
+    },
+    {
+        0.00009263,
+        0.0000544,
+    },
+    0.0f,
+    0.0f,
+    0.0f,
+    0.0f,
+    {
+        0.0f,
+        0.0f,
+        0.0f,
+    },
+    {
+        0.0f,
+        0.0f,
+    },
+};
+
+static struct StereoViewProperty property1280x720 = {
+    1280.0f,
+    720.0f,
+    {-10.0f, 0.0f},
+    {10.0f, 0.0f},
+
+    433.3219421,
+    433.013337,
+    632.172199913,
+    374.727991947,
+    {
+        -0.21252438,
+        0.03947589,
+        -0.00312653
+    },
+    {
+        0.00009263,
+        0.0000544,
+    },
+    0.0f,
+    0.0f,
+    0.0f,
+    0.0f,
+    {
+        0.0f,
+        0.0f,
+        0.0f,
+    },
+    {
+        0.0f,
+        0.0f,
+    },
+};
+
+static struct StereoViewProperty property640x480 = {
+    640.0f,
+    480.0f,
+    {-10.0f, 0.0f},
+    {10.0f, 0.0f},
+
+    288.881294733,
+    288.675558,
+    421.448133276,
+    249.818661298,
+    {
+        -0.21252438,
+        0.03947589,
+        -0.00312653
+    },
+    {
+        0.00009263,
+        0.0000544,
+    },
+    0.0f,
+    0.0f,
+    0.0f,
+    0.0f,
+    {
+        0.0f,
+        0.0f,
+        0.0f,
+    },
+    {
+        0.0f,
+        0.0f,
+    },
+};
+
 /*
  * references
  *   - https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
@@ -87,14 +190,17 @@ bool init_options(int argc, char *argv[])
         case 0:
             stereo_video_width = 1920;
             stereo_video_height = 1080;
+            stereo_view_property = property1920x1080;
             break;
         case 1:
             stereo_video_width = 1280;
             stereo_video_height = 720;
+            stereo_view_property = property1280x720;
             break;
         case 2:
             stereo_video_width = 640;
             stereo_video_height = 480;
+            stereo_view_property = property640x480;
             break;
     }
     printf("=======================================================\n");
@@ -288,40 +394,7 @@ int main (int argc, char *argv[])
         "",
         0 /*bitrate*/};
 
-        struct StereoViewProperty property = {
-            (float)stereo_video_width,
-            (float)stereo_video_height,
-            {-10.0f, 0.0f},
-            {10.0f, 0.0f},
-
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            {
-                0.0f,
-                0.0f,
-                0.0f,
-            },
-            {
-                0.0f,
-                0.0f,
-            },
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            {
-                0.0f,
-                0.0f,
-                0.0f,
-            },
-            {
-                0.0f,
-                0.0f,
-            },
-        };
-    VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, property, camera_desc_main, audioin_desc, audioout_desc);
+    VideoStreamer streamer(system_on, headset_ip, stereo_flag, camera_desc_left, camera_desc_right, stereo_view_property, camera_desc_main, audioin_desc, audioout_desc);
 
     if (streamer.initDevices() < 0)
     {

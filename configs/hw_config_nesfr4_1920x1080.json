@@ -13,6 +13,14 @@
 
     "video_stream_device":
     {
+        "main_camera":
+        {
+            "type": "v4l2",
+            "names": ["USB Video", "USB Video: USB Video", "Video Capture 3", "Logitech StreamCam", "HD Pro Webcam C920"],
+            "width": 1280,
+            "height": 720,
+            "framerate": 30
+        },
         "stereo_camera":
         {
             "left":

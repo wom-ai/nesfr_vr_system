@@ -170,21 +170,25 @@ int VideoStreamer::initGStreamer(void)
     //gst_element_set_state(pipeline_audio, GST_STATE_PLAYING);
 
     if (error != NULL) {
+        g_clear_error (&error);
         g_error("Couldn't launch the pipeline_stereo_left");
         return -1;
     }
 
     if (error1 != NULL) {
+        g_clear_error (&error1);
         g_error("Couldn't launch the pipeline_stereo_right");
         return -1;
     }
 
     if (error2 != NULL) {
+        g_clear_error (&error2);
         g_error("Couldn't launch the pipeline_main");
         return -1;
     }
 
     if (error_audio != NULL) {
+        g_clear_error (&error_audio);
         g_error("Couldn't launch the pipeline_audio");
         return -1;
     }

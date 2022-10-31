@@ -332,7 +332,8 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
             return -1;
         }
 
-        if (conn.write_id() < 0) {
+        HeadsetCtrlCmdMsg reg_msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::REGISTER, 0), device_options, 0, 0,};
+        if (conn.write_cmd(reg_msg) < 0) {
             fprintf(stderr, "[ERROR] write_id() failed, %s(%d)\n", strerror(errno), errno);
             return -1;
         }
@@ -496,6 +497,7 @@ int NesfrVR::run(void)
         }
         rs2_vr_ctrl_ptr = std::make_shared<RS2VRCtrl>(system_on, rs2_ctrl);
         rs2_vr_ctrl_ptr->init();
+        device_options |= DEVICE_OPTION_GIMBAL;
 #ifdef _AUDIO_GUIDE_
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"GimbalControllerIsReady.ogg"};
@@ -512,6 +514,7 @@ int NesfrVR::run(void)
             LOG_ERR("_initRoverController() failed");
             return -1;
         }
+        device_options |= DEVICE_OPTION_ROVER;
 #ifdef _AUDIO_GUIDE_
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"RoverIsReady.ogg"};

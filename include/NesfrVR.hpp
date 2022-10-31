@@ -9,6 +9,10 @@
 #include "rs2_vr_ctrl.hpp"
 #include "RoverController.hpp"
 
+#define DEVICE_OPTION_VIDEO     0x0001
+#define DEVICE_OPTION_GIMBAL    0x0002
+#define DEVICE_OPTION_ROVER     0x0004
+
 class NesfrVR
 {
 protected:
@@ -22,6 +26,7 @@ protected:
     std::shared_ptr<RS2VRCtrl>          rs2_vr_ctrl_ptr = nullptr;
     std::shared_ptr<RoverController>    rover_controller_ptr = nullptr;
 
+    int device_options = 0x0;
     int stream_state = 0;
 public:
     NesfrVR(void);

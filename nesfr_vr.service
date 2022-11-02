@@ -1,0 +1,32 @@
+#
+# references
+#  - https://www.freedesktop.org/software/systemd/man/systemd.service.html#
+#
+
+[Unit]
+Description=NESFR VR Service
+After=gdm.service
+#ConditionPathExists=
+
+[Service]
+User=wom
+Type=simple
+#EnvironmentFile=-/etc/default/ssh
+#ExecStartPre=/usr/sbin/sshd -t
+#PIDFile=/var/run/nesfr_vr.pid
+ExecStart=/bin/sh -c 'DISPLAY=:0 /home/wom/jylee/work/nesfr_vr_system/cli/build/nesfr_vr_system_cli'
+#ExecStart=/bin/sh /home/wom/jylee/work/nesfr_vr_system/nesfr_vr.sh
+ExecStop=/bin/kill -s TERM $MAINPID
+#ExecReload=/usr/sbin/sshd -t
+#ExecReload=/bin/kill -HUP $MAINPID
+#KillMode=process
+#Restart=on-abort
+Restart=no
+#RestartPreventExitStatus=255
+#Type=notify
+#RuntimeDirectory=sshd
+#RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
+Alias=nesfr_vr.service

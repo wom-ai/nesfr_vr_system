@@ -36,11 +36,13 @@ static auto console = spdlog::stdout_color_mt("Main");
 
 static void build_info(void)
 {
+    printf(">>> %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
     LOG_INFO("GCC __VERSION__={}", __VERSION__);
     LOG_INFO("CPP STANDARD __cplusplus={}", __cplusplus);
     LOG_INFO("Build Date={}", __DATE__);
     LOG_INFO("Git Branch=[{}]", __GIT_BRANCH__);
     LOG_INFO("    +-> commit {}", __GIT_COMMIT_HASH__);
+    printf("<<< %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
 }
 
 static int load_hw_config(Json::Value &root)
@@ -152,13 +154,26 @@ public:
     int S;
 };
 
-static void signal_handler(int s)
+class TerminationException : public std::exception
+{
+public:
+    TerminationException(int s) : S(s) {}
+    int S;
+};
+
+static void signal_int_handler(int s)
 {
     throw InterruptException(s);
 }
 
+static void signal_term_handler(int s)
+{
+    throw TerminationException(s);
+}
+
 void init_signal(void)
 {
+    printf(">>> %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
 #if 0
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = signal_handler;
@@ -166,8 +181,10 @@ void init_signal(void)
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
 #else
-    std::signal(SIGINT, signal_handler);
+    std::signal(SIGINT, signal_int_handler);
+    std::signal(SIGTERM, signal_term_handler);
 #endif
+    printf("<<< %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
 }
 static bool call_nmap(void)
 {
@@ -538,7 +555,10 @@ int NesfrVR::run(void)
     try {
         _mainLoop(conn);
     } catch (InterruptException &e) {
-        LOG_WARN("Terminated by Interrrupt {}\n", e.what());
+        LOG_WARN("Terminated by Interrrupt Signal {}\n", e.what());
+        system_on = {false};
+    } catch (TerminationException &e) {
+        LOG_WARN("Terminated by Termination Signal {}\n", e.what());
         system_on = {false};
     } catch (std::exception &e) {
         LOG_ERR("[ERROR]: %s\n", e.what());

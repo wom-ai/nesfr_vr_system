@@ -594,7 +594,7 @@ int NesfrVR::run(void)
 
     conn.deinit();
 
-    if (_playAudioGuide("VrSystemHasBeenShutDown.ogg") < 0)
+    if (_playAudioGuide("VrSystemIsShutDown.ogg") < 0)
         return -1;
 
     return 0;

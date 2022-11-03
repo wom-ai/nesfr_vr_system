@@ -8,6 +8,7 @@
 #include "VideoStreamer.hpp"
 #include "rs2_vr_ctrl.hpp"
 #include "RoverController.hpp"
+#include "Utils.hpp"
 
 #define DEVICE_OPTION_VIDEO     0x0001
 #define DEVICE_OPTION_GIMBAL    0x0002
@@ -26,6 +27,7 @@ protected:
     std::shared_ptr<RS2VRCtrl>          rs2_vr_ctrl_ptr = nullptr;
     std::shared_ptr<RoverController>    rover_controller_ptr = nullptr;
 
+    std::shared_ptr<AudioPlayer>        audio_player_ptr = nullptr;
     int device_options = 0x0;
     int stream_state = 0;
 public:
@@ -34,6 +36,7 @@ public:
     int _initGimbalCtrl(void);
     int _initRoverController(void);
     int _deinitRoverController(void);
+    int _playAudioGuide(const std::string filename);
     int run(void);
 
     int _mainLoop(CtrlClient &conn);

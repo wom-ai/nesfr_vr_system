@@ -14,7 +14,6 @@
 
 #include "CtrlClient.hpp"
 #include "rs2_vr_ctrl.hpp"
-#include "Utils.hpp"
 
 // filesystem
 /*
@@ -329,6 +328,17 @@ int NesfrVR::_deinitRoverController(void)
     return ret;
 }
 
+int NesfrVR::_playAudioGuide(const std::string filename)
+{
+#ifdef _AUDIO_GUIDE_
+    static const filesystem::path home_dir_path{getenv("HOME")};
+    const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/filename.c_str()};
+    if (audio_player_ptr->playOggFile(data_dir_path.string()))
+        return -1;
+#endif
+    return 0;
+}
+
 int NesfrVR::_mainLoop(CtrlClient &conn)
 {
     //streamer_ptr->warmUpStream();
@@ -339,7 +349,10 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
         }
         if (conn.conn(headset_ip)) {
             LOG_WARN("[WARN] connectto() failed retry after 1 sec\n");
-            sleep(1);
+
+            if (_playAudioGuide("CouldntConnectTheVRHeadset.ogg") < 0)
+                return -1;
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
             continue;
         }
 
@@ -446,32 +459,18 @@ int NesfrVR::run(void)
     CANComm can_comm(can_ch_num);
     RS2Ctrl rs2_ctrl(can_comm);
 
-    if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-        fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
-
-        if (!call_nmap()) {
-            fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
-            return -1;
-        }
-        if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-            fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
-            return -1;
-        }
-    }
-    printf(">> VR Headset ip: %s\n", headset_ip.c_str());
-
     if (load_hw_config(root) < 0) {
         LOG_ERR("No HW configuration.");
         return -1;
     }
 
 #ifdef _AUDIO_GUIDE_
-    AudioPlayer audio_player(root["video_stream_device"]["audio-out"]["type"].asString(),
+    audio_player_ptr = std::make_shared<AudioPlayer>(root["video_stream_device"]["audio-out"]["type"].asString(),
             root["video_stream_device"]["audio-out"]["name"].asString());
     {
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"Intro.wav"};
-        if (audio_player.playWavFile(data_dir_path.string()))
+        if (audio_player_ptr->playWavFile(data_dir_path.string()))
             return -1;
     }
 #endif
@@ -489,18 +488,35 @@ int NesfrVR::run(void)
         return -1;
     }
 
+    if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+        fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
+
+        while(system_on) {
+            if (!call_nmap()) {
+                fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
+                return -1;
+            }
+            if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+                fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
+                if (_playAudioGuide("CouldntFindAnyVRHeadset.ogg") < 0)
+                    return -1;
+
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                continue;
+            }
+            break;
+        }
+    }
+    printf(">> VR Headset ip: %s\n", headset_ip.c_str());
+
     // initialize
     if (root.isMember("video_stream_device")) {
         if (_initVideoStream()) {
             LOG_ERR("_initVideoStream() failed");
             return -1;
         }
-#ifdef _AUDIO_GUIDE_
-        const filesystem::path home_dir_path{getenv("HOME")};
-        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"VideoStreamerIsReady.ogg"};
-        if (audio_player.playOggFile(data_dir_path.string()))
+        if (_playAudioGuide("VideoStreamerIsReady.ogg") < 0)
             return -1;
-#endif
     } else {
         LOG_ERR("No Video Streame Device configuration.");
         return -1;
@@ -515,12 +531,9 @@ int NesfrVR::run(void)
         rs2_vr_ctrl_ptr = std::make_shared<RS2VRCtrl>(system_on, rs2_ctrl);
         rs2_vr_ctrl_ptr->init();
         device_options |= DEVICE_OPTION_GIMBAL;
-#ifdef _AUDIO_GUIDE_
-        const filesystem::path home_dir_path{getenv("HOME")};
-        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"GimbalControllerIsReady.ogg"};
-        if (audio_player.playOggFile(data_dir_path.string()))
+
+        if (_playAudioGuide("GimbalControllerIsReady.ogg") < 0)
             return -1;
-#endif
     } else {
         LOG_WARN("No Gimbal configuration.");
     }
@@ -532,24 +545,15 @@ int NesfrVR::run(void)
             return -1;
         }
         device_options |= DEVICE_OPTION_ROVER;
-#ifdef _AUDIO_GUIDE_
-        const filesystem::path home_dir_path{getenv("HOME")};
-        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"RoverIsReady.ogg"};
-        if (audio_player.playOggFile(data_dir_path.string()))
+
+        if (_playAudioGuide("RoverIsReady.ogg") < 0)
             return -1;
-#endif
     } else {
         LOG_WARN("No Base Rover configuration.");
     }
 
-#ifdef _AUDIO_GUIDE_
-    {
-        const filesystem::path home_dir_path{getenv("HOME")};
-        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"VrSystemIsReady.ogg"};
-        if (audio_player.playOggFile(data_dir_path.string()))
-            return -1;
-    }
-#endif
+    if (_playAudioGuide("VrSystemIsReady.ogg") < 0)
+        return -1;
 
     // main loop
     try {
@@ -590,14 +594,9 @@ int NesfrVR::run(void)
 
     conn.deinit();
 
-#ifdef _AUDIO_GUIDE_
-    {
-        const filesystem::path home_dir_path{getenv("HOME")};
-        const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"VrSystemHasBeenShutDown.ogg"};
-        if (audio_player.playOggFile(data_dir_path.string()))
-            return -1;
-    }
-#endif
+    if (_playAudioGuide("VrSystemHasBeenShutDown.ogg") < 0)
+        return -1;
+
     return 0;
 }
 

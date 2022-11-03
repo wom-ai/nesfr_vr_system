@@ -25,14 +25,14 @@ public:
         printf("[INFO] %s:%d gst_parse_launch(%s)\n", __FUNCTION__, __LINE__, launch_script.c_str());
         GstElement *pipeline = gst_parse_launch (launch_script.c_str(), &error);
         if (error) {
-            g_printerr("Unable to build pipeline for *.ogg: %s\n", error->message);
+            g_printerr("[ERROR] Unable to build pipeline for *.ogg: %s\n", error->message);
             g_clear_error (&error);
             return -1;
         }
 
         GstStateChangeReturn ret = gst_element_set_state (pipeline, GST_STATE_PLAYING);
         if (ret == GST_STATE_CHANGE_FAILURE) {
-            g_printerr ("Unable to set the pipeline to the playing state.\n");
+            g_printerr ("[ERROR] Unable to set the pipeline to the playing state for %s.\n", path.c_str());
             gst_object_unref (pipeline);
             return -1;
         }
@@ -47,9 +47,9 @@ public:
             switch (GST_MESSAGE_TYPE (msg)) {
                 case GST_MESSAGE_ERROR:
                     gst_message_parse_error (msg, &err, &debug_info);
-                    g_printerr ("Error received from element %s: %s\n",
+                    g_printerr ("[ERROR] received from element %s: %s\n",
                             GST_OBJECT_NAME (msg->src), err->message);
-                    g_printerr ("Debugging information: %s\n",
+                    g_printerr ("[ERROR] Debugging information: %s\n",
                             debug_info ? debug_info : "none");
                     g_clear_error (&err);
                     g_free (debug_info);
@@ -59,7 +59,7 @@ public:
                     break;
                 default:
                     /* We should not reach here because we only asked for ERRORs and EOS */
-                    g_printerr ("Unexpected message received.\n");
+                    g_printerr ("[ERROR] Unexpected message received.\n");
                     break;
             }
             gst_message_unref (msg);
@@ -87,14 +87,14 @@ public:
         printf("[INFO] %s:%d gst_parse_launch(%s)\n", __FUNCTION__, __LINE__, launch_script.c_str());
         GstElement *pipeline = gst_parse_launch (launch_script.c_str(), &error);
         if (error) {
-            g_printerr("Unable to build pipeline for *.wav: %s\n", error->message);
+            g_printerr("[ERROR] Unable to build pipeline for *.wav: %s\n", error->message);
             g_clear_error (&error);
             return -1;
         }
 
         GstStateChangeReturn ret = gst_element_set_state (pipeline, GST_STATE_PLAYING);
         if (ret == GST_STATE_CHANGE_FAILURE) {
-            g_printerr ("Unable to set the pipeline to the playing state.\n");
+            g_printerr ("[ERROR] Unable to set the pipeline to the playing state for %s.\n", path.c_str());
             gst_object_unref (pipeline);
             return -1;
         }
@@ -102,6 +102,7 @@ public:
         GstBus *bus = gst_element_get_bus (pipeline);;
         GstMessage *msg = gst_bus_timed_pop_filtered (bus, GST_CLOCK_TIME_NONE, GstMessageType(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
 
+        // FIXME: handle SIGXXX Exceptions
         if (msg != NULL) {
             GError *err;
             gchar *debug_info;
@@ -109,9 +110,9 @@ public:
             switch (GST_MESSAGE_TYPE (msg)) {
                 case GST_MESSAGE_ERROR:
                     gst_message_parse_error (msg, &err, &debug_info);
-                    g_printerr ("Error received from element %s: %s\n",
+                    g_printerr ("[ERROR] received from element %s: %s\n",
                             GST_OBJECT_NAME (msg->src), err->message);
-                    g_printerr ("Debugging information: %s\n",
+                    g_printerr ("[ERROR] Debugging information: %s\n",
                             debug_info ? debug_info : "none");
                     g_clear_error (&err);
                     g_free (debug_info);
@@ -121,7 +122,7 @@ public:
                     break;
                 default:
                     /* We should not reach here because we only asked for ERRORs and EOS */
-                    g_printerr ("Unexpected message received.\n");
+                    g_printerr ("[ERROR] Unexpected message received.\n");
                     break;
             }
             gst_message_unref (msg);

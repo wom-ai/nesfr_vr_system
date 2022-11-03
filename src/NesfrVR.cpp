@@ -328,12 +328,12 @@ int NesfrVR::_deinitRoverController(void)
     return ret;
 }
 
-int NesfrVR::_playAudioGuide(const std::string filename)
+int NesfrVR::_playAudioGuide(const std::string filename, const double volume)
 {
 #ifdef _AUDIO_GUIDE_
     static const filesystem::path home_dir_path{getenv("HOME")};
     const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/filename.c_str()};
-    if (audio_player_ptr->playOggFile(data_dir_path.string()))
+    if (audio_player_ptr->playOggFile(data_dir_path.string(), volume))
         return -1;
 #endif
     return 0;

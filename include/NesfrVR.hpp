@@ -36,7 +36,7 @@ public:
     int _initGimbalCtrl(void);
     int _initRoverController(void);
     int _deinitRoverController(void);
-    int _playAudioGuide(const std::string filename);
+    int _playAudioGuide(const std::string filename, const double volume=1.0);
     int run(void);
 
     int _mainLoop(CtrlClient &conn);

@@ -19,14 +19,19 @@ Type=simple
 #ExecStop=/bin/kill -s TERM $MAINPID
 ####################################################################################
 
-Environment=GST_DEBUG=3
-ExecStart=/home/wom/jylee/work/nesfr_vr_system/cli/build/nesfr_vr_system_cli
-#ExecStart=/bin/sh /home/wom/jylee/work/nesfr_vr_system/nesfr_vr.sh
+####################################################################################
+# FIXME: if you use a executable directlry, you don't need to use /bin/kill -s TERM $MAINPID
+#Environment=GST_DEBUG=3
+#ExecStart=/home/wom/jylee/work/nesfr_vr_system/cli/build/nesfr_vr_system_cli
+####################################################################################
+
+ExecStart=/home/wom/jylee/work/nesfr_vr_system/nesfr_vr.sh
+ExecStop=/bin/kill -s TERM $MAINPID
 #ExecReload=/usr/sbin/sshd -t
 #ExecReload=/bin/kill -HUP $MAINPID
 #KillMode=process
 Restart=on-failure
-RestartSec=20s
+RestartSec=5s
 #RestartPreventExitStatus=255
 #Type=notify
 #RuntimeDirectory=sshd

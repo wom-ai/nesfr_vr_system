@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <net/if.h>
 
 #include "CtrlClient.hpp"
 
@@ -37,9 +38,10 @@ void func(int sockfd)
     }
 }
 
-CtrlClient::CtrlClient(const std::string &hostname)
+CtrlClient::CtrlClient(const std::string &hostname, const std::string &interface_name)
 {
     this->hostname = hostname;
+    this->interface_name = interface_name;
     memset(predefined_header.name, 0x0, sizeof(predefined_header.name));
     strncpy(predefined_header.name, hostname.c_str(), sizeof(predefined_header.name));
 }
@@ -63,16 +65,32 @@ int CtrlClient::init(void)
         return -1;
     }
     */
+    /*
+     * references
+     *  - https://stackoverflow.com/questions/47286590/how-to-detect-internet-connectivity-on-a-non-gateway-interface-linuxa
+     *  - https://man7.org/linux/man-pages/man7/netdevice.7.html
+     */
+
+    struct ifreq ifr;
+    strncpy(ifr.ifr_name, interface_name.c_str(), IFNAMSIZ);
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr)) < 0) {
+        close(sockfd);
+        sockfd = -1;
+        return -1;
+    }
+
     return 0;
 }
-int CtrlClient::conn(const std::string &ip_str)
+
+int CtrlClient::conn(const std::string &server_ip_str)
 {
     struct sockaddr_in servaddr;
     bzero(&servaddr, sizeof(servaddr));
    
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr(ip_str.c_str());
+    servaddr.sin_addr.s_addr = inet_addr(server_ip_str.c_str());
     servaddr.sin_port = htons(PORT);
    
     // connect the client socket to server socket
@@ -89,6 +107,7 @@ int CtrlClient::deinit(void)
 {
     if (sockfd)
         close(sockfd);
+    sockfd = -1;
     return 0;
 }
 

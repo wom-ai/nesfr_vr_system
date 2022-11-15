@@ -44,16 +44,17 @@ class CtrlClient {
 private: 
     int sockfd = 0;
     std::string hostname;
+    std::string interface_name;
 
 public:
     struct CmdHeader predefined_header;
 
-    CtrlClient(const std::string &hostname);
+    CtrlClient(const std::string &hostname, const std::string &interface_name="wlan0");
 
     int init(void);
     int deinit(void);
 
-    int conn(const std::string &ip_str);
+    int conn(const std::string &server_ip_str);
     void run(void);
 
     struct CmdHeader build_header(const unsigned int cmd, const unsigned int data_size);

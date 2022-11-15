@@ -1,5 +1,9 @@
 {
     "version": 2,
+    "network":
+    {
+        "mac_addr": "58:86:94:f3:1d:3a"
+    },
     "gimbal":
     {
         "type": "RS2",

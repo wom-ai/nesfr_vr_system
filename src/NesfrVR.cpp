@@ -97,55 +97,6 @@ static const std::string headset_A_mac_addr = "2c:26:17:eb:ae:28";
 // Headset B
 static const std::string headset_B_mac_addr = "2c:26:17:e9:08:3e";
 
-/*
- * reference
- *   - https://www.cplusplus.com/reference/cstring/strtok/
- */
-static bool find_headset_ip_by_MACAddr(const std::string &mac_addr, std::string &ip)
-{
-    bool ret = false;
-    FILE *pin = nullptr;
-    pin = popen("arp -n","r");
-    if (!pin)
-        return false;
-
-    std::vector<std::string> lines;
-    while (!feof(pin)) {
-        char *line = nullptr;
-        size_t len = 0;
-        ssize_t read = getline(&line, &len, pin);
-        if (read)
-            lines.push_back(line);
-    }
-    pclose(pin);
-
-    // parse lines
-    for (const auto line : lines) {
-        char *pch;
-        std::vector<std::string> tokens;
-        pch = strtok ((char *)line.c_str()," ,-\n");
-        while (pch != NULL)
-        {
-            printf ("(%s) ",pch);
-            tokens.push_back(pch);
-            pch = strtok (NULL, " ,-\n");
-        }
-
-//        if (tokens.size() > 0)
-//            printf("%s\n", tokens[0].c_str());
-//
-        if (tokens.size() == 5 && tokens[2].compare(headset_A_mac_addr) == 0) {
-            ip = tokens[0];
-            printf("- found VR Headset:%s", ip.c_str());
-            ret = true;
-            break;
-        }
-        printf("\n");
-    }
-
-    return ret;
-}
-
 class InterruptException : public std::exception
 {
 public:
@@ -185,24 +136,7 @@ void init_signal(void)
 #endif
     printf("<<< %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
 }
-static bool call_nmap(void)
-{
-    FILE *pin = nullptr;
-    pin = popen("nmap -sn 192.168.0.0/24","r");
-    if (!pin)
-        return false;
-    else {
-        while (!feof(pin)) {
-            char *line = nullptr;
-            size_t len = 0;
-            ssize_t read = getline(&line, &len, pin);
-            if (read)
-                printf("%s", line);
-        }
-        pclose(pin);
-    }
-    return true;
-}
+
 NesfrVR::NesfrVR(void)
 {
 }
@@ -488,15 +422,22 @@ int NesfrVR::run(void)
         return -1;
     }
 
-    if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+    std::string ip_addr;
+    if (NetUtils::getIPAddrbyHWAddr(ip_addr, root["network"]["mac_addr"].asString()) < 0)
+    {
+        return -1;
+    }
+    LOG_INFO("ip_addr = {}", ip_addr.c_str());
+
+    if (!NetUtils::find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
         fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
 
         while(system_on) {
-            if (!call_nmap()) {
+            if (!NetUtils::call_nmap(ip_addr.c_str())) {
                 fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
                 return -1;
             }
-            if (!find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
+            if (!NetUtils::find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
                 fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
                 if (_playAudioGuide("CouldntFindAnyVRHeadset.ogg") < 0)
                     return -1;

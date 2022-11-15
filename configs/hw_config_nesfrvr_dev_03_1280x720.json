@@ -1,5 +1,9 @@
 {
     "version": 2,
+    "network":
+    {
+        "mac_addr": "58:86:94:f3:1c:48"
+    },
     "video_stream_device":
     {
         "stereo_camera":

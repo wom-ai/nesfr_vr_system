@@ -1,9 +1,11 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <net/if.h>
 #include <netinet/ether.h>
 
 #include <gst/gst.h>
@@ -88,7 +90,7 @@ public:
      *  - https://linux.die.net/man/7/netdevice
      *  - https://linux.die.net/man/3/ether_ntoa
      */
-    static int getIPAddrbyHWAddr(std::string &ip_addr, const std::string &hw_addr)
+    static int getIPAddrbyHWAddr(std::string &interface_name, std::string &ip_addr, const std::string &hw_addr)
     {
         struct sockaddr_in *sin;
         struct sockaddr *sa;
@@ -129,6 +131,7 @@ public:
                 sa = &ifr.ifr_hwaddr;
 
                 if (hw_addr.compare(ether_ntoa((struct ether_addr *)sa->sa_data)) == 0) {
+                    interface_name = cur_ifr->ifr_name;
                     printf("[INFO] getIPAddrbyHWAddr() found %s by %s\n", inet_ntoa(sin->sin_addr), ether_ntoa((struct ether_addr *)sa->sa_data));
                     ip_addr = inet_ntoa(sin->sin_addr);
                     close (fd);

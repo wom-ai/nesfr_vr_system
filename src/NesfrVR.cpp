@@ -388,7 +388,6 @@ int NesfrVR::run(void)
     printf("Device Name (=hostname): %s\n", hostname);
     printf("=======================================================\n");
 
-    CtrlClient conn(hostname);
     const uint8_t can_ch_num = 0;
     CANComm can_comm(can_ch_num);
     RS2Ctrl rs2_ctrl(can_comm);
@@ -423,7 +422,8 @@ int NesfrVR::run(void)
     }
 
     std::string ip_addr;
-    if (NetUtils::getIPAddrbyHWAddr(ip_addr, root["network"]["mac_addr"].asString()) < 0)
+    std::string interface_name;
+    if (NetUtils::getIPAddrbyHWAddr(interface_name, ip_addr, root["network"]["mac_addr"].asString()) < 0)
     {
         return -1;
     }
@@ -448,6 +448,7 @@ int NesfrVR::run(void)
             break;
         }
     }
+    CtrlClient conn(hostname, interface_name);
     printf(">> VR Headset ip: %s\n", headset_ip.c_str());
 
     // initialize

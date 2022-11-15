@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "VideoStreamer.hpp"
-#include "rs2_vr_ctrl.hpp"
+#include "GimbalController.hpp"
 #include "RoverController.hpp"
 #include "Utils.hpp"
 
@@ -24,16 +24,22 @@ protected:
 
     Json::Value root;
     std::shared_ptr<VideoStreamer>      streamer_ptr = nullptr;
-    std::shared_ptr<RS2VRCtrl>          rs2_vr_ctrl_ptr = nullptr;
+    std::shared_ptr<GimbalController>   gimbal_controller_ptr = nullptr;
     std::shared_ptr<RoverController>    rover_controller_ptr = nullptr;
 
     std::shared_ptr<AudioPlayer>        audio_player_ptr = nullptr;
     int device_options = 0x0;
     int stream_state = 0;
+
+    std::string ip_addr;
+    std::string interface_name;
 public:
     NesfrVR(void);
+    int _init(void);
+    int _deinit(void);
     int _initVideoStream(void);
-    int _initGimbalCtrl(void);
+    int _initGimbalController(void);
+    int _deinitGimbalController(void);
     int _initRoverController(void);
     int _deinitRoverController(void);
     int _playAudioGuide(const std::string filename, const double volume=1.0);

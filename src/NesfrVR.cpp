@@ -13,7 +13,6 @@
 #include <unistd.h>
 
 #include "CtrlClient.hpp"
-#include "rs2_vr_ctrl.hpp"
 
 // filesystem
 /*
@@ -239,9 +238,22 @@ int NesfrVR::_initVideoStream(void)
     return 0;
 }
 
-int NesfrVR::_initGimbalCtrl(void)
+int NesfrVR::_initGimbalController(void)
 {
-    return 0;
+    struct GimbalDesc gimbal_desc = {
+        root["gimbal"]["type"].asString(),
+        root["gimbal"]["name"].asString(),
+        root["gimbal"]["can_ch"].asUInt(),
+    };
+    gimbal_controller_ptr = std::make_shared<GimbalController>(system_on, gimbal_desc);
+    return gimbal_controller_ptr->initDevice();;
+}
+
+int NesfrVR::_deinitGimbalController(void)
+{
+    int ret = gimbal_controller_ptr->deinitDevice();
+    gimbal_controller_ptr = nullptr;
+    return ret;
 }
 
 int NesfrVR::_initRoverController(void)
@@ -388,9 +400,6 @@ int NesfrVR::run(void)
     printf("Device Name (=hostname): %s\n", hostname);
     printf("=======================================================\n");
 
-    const uint8_t can_ch_num = 0;
-    CANComm can_comm(can_ch_num);
-    RS2Ctrl rs2_ctrl(can_comm);
 
     if (load_hw_config(root) < 0) {
         LOG_ERR("No HW configuration.");
@@ -466,12 +475,10 @@ int NesfrVR::run(void)
 
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal found");
-        if (_initGimbalCtrl()) {
-            LOG_ERR("_initGimbalCtrl() failed");
+        if (_initGimbalController()) {
+            LOG_ERR("_initGimbalController() failed");
             return -1;
         }
-        rs2_vr_ctrl_ptr = std::make_shared<RS2VRCtrl>(system_on, rs2_ctrl);
-        rs2_vr_ctrl_ptr->init();
         device_options |= DEVICE_OPTION_GIMBAL;
 
         if (_playAudioGuide("GimbalControllerIsReady.ogg") < 0)
@@ -523,8 +530,10 @@ int NesfrVR::run(void)
     }
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal - deinit");
-        rs2_vr_ctrl_ptr->deinit();
-        rs2_vr_ctrl_ptr = nullptr;
+        if (_deinitGimbalController()) {
+            LOG_ERR("_deinitGimbalController() failed");
+            return -1;
+        }
     }
     if (root.isMember("base_rover")) {
         LOG_INFO("Base Rover - deinit");

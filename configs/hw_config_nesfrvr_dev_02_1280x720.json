@@ -1,5 +1,5 @@
 {
-    "version": 2,
+    "version": 3,
     "network":
     {
         "mac_addr": "58:86:94:f3:1d:3a"
@@ -7,7 +7,8 @@
     "gimbal":
     {
         "type": "RS2",
-        "name": ""
+        "name": "noname",
+        "can_ch": 0
     },
     "video_stream_device":
     {

@@ -35,6 +35,7 @@ add_executable(
     ${PROJECT_NAME}
     ../src/NesfrVR.cpp
     ../src/RoverController.cpp
+    ../src/GimbalController.cpp
     ../nesfr_vr_video_streamer/src/V4L2Device.cpp
     ../nesfr_vr_video_streamer/src/V4L2Camera.cpp
     ../nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
@@ -43,7 +44,7 @@ add_executable(
     ../nesfr_vr_ctrl/src/custom_crc16.c
     ../nesfr_vr_ctrl/src/custom_crc32.c
     ../nesfr_vr_ctrl/src/RS2Ctrl.cpp
-    ../nesfr_vr_ctrl/src/rs2_vr_ctrl.cpp
+    ../nesfr_vr_ctrl/src/RS2.cpp
     ../nesfr4_control/src/Joystick.cpp
     ../nesfr4_control/src/Wheel.cpp
     ../nesfr4_control/src/VRJoystick.cpp

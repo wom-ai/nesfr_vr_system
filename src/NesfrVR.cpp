@@ -395,7 +395,7 @@ int NesfrVR::_init(void)
     } else {
         LOG_ERR("HW configuraton file's version is not compatible with this application.");
         if (root.isMember("version")) {
-            LOG_ERR("\tFile version={}, Application version={}.", root["version"].asUInt(), CONFIG_VERSION);
+            LOG_ERR("\tConfig File version={}, Application version={}.", root["version"].asUInt(), CONFIG_VERSION);
         } else {
             LOG_ERR("\tNo version info in the config file.");
         }
@@ -434,6 +434,7 @@ int NesfrVR::_init(void)
     if (root.isMember("video_stream_device")) {
         if (_initVideoStreamer()) {
             LOG_ERR("_initVideoStreamer() failed");
+            _playAudioGuide("VideoStreamerInitFailed.ogg");
             return -1;
         }
         if (_playAudioGuide("VideoStreamerIsReady.ogg") < 0)
@@ -447,6 +448,7 @@ int NesfrVR::_init(void)
         LOG_INFO("Gimbal found");
         if (_initGimbalController()) {
             LOG_ERR("_initGimbalController() failed");
+            _playAudioGuide("GimbalControllerInitFailed.ogg");
             return -1;
         }
         device_options |= DEVICE_OPTION_GIMBAL;
@@ -461,6 +463,7 @@ int NesfrVR::_init(void)
         LOG_INFO("Base Rover found");
         if (_initRoverController()) {
             LOG_ERR("_initRoverController() failed");
+            _playAudioGuide("RoverControllerInitFailed.ogg");
             return -1;
         }
         device_options |= DEVICE_OPTION_ROVER;

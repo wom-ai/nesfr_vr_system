@@ -35,15 +35,23 @@ protected:
     std::string interface_name;
 public:
     NesfrVR(void);
+    int run(void);
+    int stop(void);
+
+private:
     int _init(void);
     int _deinit(void);
-    int _initVideoStream(void);
+
+    int _initVideoStreamer(void);
+    int _deinitVideoStreamer(void);
+
     int _initGimbalController(void);
     int _deinitGimbalController(void);
+
     int _initRoverController(void);
     int _deinitRoverController(void);
+
     int _playAudioGuide(const std::string filename, const double volume=1.0);
-    int run(void);
 
     int _mainLoop(CtrlClient &conn);
 };

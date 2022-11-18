@@ -32,7 +32,7 @@ namespace filesystem = std::filesystem;
 static auto console = spdlog::stdout_color_mt("Main");
 #endif
 
-static void build_info(void)
+static void print_build_info(void)
 {
     printf(">>> %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
     LOG_INFO("GCC __VERSION__={}", __VERSION__);
@@ -120,27 +120,11 @@ static void signal_term_handler(int s)
     throw TerminationException(s);
 }
 
-void init_signal(void)
-{
-    printf(">>> %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
-#if 0
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = signal_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-    sigaction(SIGINT, &sigIntHandler, NULL);
-#else
-    std::signal(SIGINT, signal_int_handler);
-    std::signal(SIGTERM, signal_term_handler);
-#endif
-    printf("<<< %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
-}
-
 NesfrVR::NesfrVR(void)
 {
 }
 
-int NesfrVR::_initVideoStream(void)
+int NesfrVR::_initVideoStreamer(void)
 {
     struct CameraDesc camera_desc_left = {
         root["video_stream_device"]["stereo_camera"]["left"]["type"].asString(),
@@ -236,6 +220,13 @@ int NesfrVR::_initVideoStream(void)
         return -1;
     }
     return 0;
+}
+
+int NesfrVR::_deinitVideoStreamer(void)
+{
+    int ret = streamer_ptr->deinitDevices();
+    streamer_ptr = nullptr;
+    return ret;
 }
 
 int NesfrVR::_initGimbalController(void)
@@ -385,26 +376,8 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
     return 0;
 }
 
-int NesfrVR::run(void)
+int NesfrVR::_init(void)
 {
-    build_info();
-
-    init_signal();
-
-    //set CmdHeader
-    char hostname[16];
-    //get host name
-    memset(hostname, 0x0, sizeof(hostname));
-    gethostname(hostname, sizeof(hostname));
-    printf("=======================================================\n");
-    printf("Device Name (=hostname): %s\n", hostname);
-    printf("=======================================================\n");
-
-
-    if (load_hw_config(root) < 0) {
-        LOG_ERR("No HW configuration.");
-        return -1;
-    }
 
 #ifdef _AUDIO_GUIDE_
     audio_player_ptr = std::make_shared<AudioPlayer>(root["video_stream_device"]["audio-out"]["type"].asString(),
@@ -430,8 +403,6 @@ int NesfrVR::run(void)
         return -1;
     }
 
-    std::string ip_addr;
-    std::string interface_name;
     if (NetUtils::getIPAddrbyHWAddr(interface_name, ip_addr, root["network"]["mac_addr"].asString()) < 0)
     {
         return -1;
@@ -457,13 +428,12 @@ int NesfrVR::run(void)
             break;
         }
     }
-    CtrlClient conn(hostname, interface_name);
     printf(">> VR Headset ip: %s\n", headset_ip.c_str());
 
     // initialize
     if (root.isMember("video_stream_device")) {
-        if (_initVideoStream()) {
-            LOG_ERR("_initVideoStream() failed");
+        if (_initVideoStreamer()) {
+            LOG_ERR("_initVideoStreamer() failed");
             return -1;
         }
         if (_playAudioGuide("VideoStreamerIsReady.ogg") < 0)
@@ -504,29 +474,19 @@ int NesfrVR::run(void)
     if (_playAudioGuide("VrSystemIsReady.ogg") < 0)
         return -1;
 
-    // main loop
-    try {
-        _mainLoop(conn);
-    } catch (InterruptException &e) {
-        LOG_WARN("Terminated by Interrrupt Signal {}\n", e.what());
-        system_on = {false};
-    } catch (TerminationException &e) {
-        LOG_WARN("Terminated by Termination Signal {}\n", e.what());
-        system_on = {false};
-    } catch (std::exception &e) {
-        LOG_ERR("[ERROR]: %s\n", e.what());
-        system_on = {false};
-    }
+    return 0;
+}
 
+int NesfrVR::_deinit(void)
+{
     // finalize
     if (root.isMember("video_stream_device")) {
         LOG_INFO("Video Stream - deinit");
-        if (streamer_ptr->deinitDevices() < 0)
+        if (_deinitVideoStreamer() < 0)
         {
-            perror ("gstreamer_ptr deinitialization failed.");
+            LOG_ERR("_deinitVideoStreamer() failed.");
             return -1;
         }
-        streamer_ptr = nullptr;
     }
     if (root.isMember("gimbal")) {
         LOG_INFO("Gimbal - deinit");
@@ -543,7 +503,52 @@ int NesfrVR::run(void)
         }
     }
 
+    return 0;
+}
+
+int NesfrVR::run(void)
+{
+    print_build_info();
+
+    system_on = {true};
+
+    //set CmdHeader
+    char hostname[16];
+    //get host name
+    memset(hostname, 0x0, sizeof(hostname));
+    gethostname(hostname, sizeof(hostname));
+    printf("=======================================================\n");
+    printf("Device Name (=hostname): %s\n", hostname);
+    printf("=======================================================\n");
+
+    if (load_hw_config(root) < 0) {
+        LOG_ERR("No HW configuration.");
+        return -1;
+    }
+
+    if (_init() < 0)
+        return -1;
+
+    CtrlClient conn(hostname, interface_name);
+
+    try {
+        // main loop
+        _mainLoop(conn);
+    } catch (InterruptException &e) {
+        LOG_WARN("Terminated by Interrrupt Signal {}\n", e.what());
+        stop();
+    } catch (TerminationException &e) {
+        LOG_WARN("Terminated by Termination Signal {}\n", e.what());
+        stop();
+    } catch (std::exception &e) {
+        LOG_ERR("[ERROR]: %s\n", e.what());
+        stop();
+    }
+
     conn.deinit();
+
+    if (_deinit() < 0)
+        return -1;
 
     if (_playAudioGuide("VrSystemIsShutDown.ogg") < 0)
         return -1;
@@ -551,10 +556,49 @@ int NesfrVR::run(void)
     return 0;
 }
 
+int NesfrVR::stop(void)
+{
+    system_on = {false};
+    return 0;
+}
+
 #ifdef NESFR_VR_MAIN_FUNC
+void init_signal(void)
+{
+    printf(">>> %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
+#if 0
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = signal_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, NULL);
+#else
+    std::signal(SIGINT, signal_int_handler);
+    std::signal(SIGHUP, signal_int_handler);
+    std::signal(SIGTERM, signal_term_handler);
+#endif
+    printf("<<< %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
+}
+
 int main(int argc, char *argv[])
 {
+    init_signal();
+
     NesfrVR nesfrvr;
-    return nesfrvr.run();
+    int ret = 0;
+    try {
+        ret = nesfrvr.run();
+    } catch (InterruptException &e) {
+        LOG_WARN("Terminated by Interrrupt Signal {}\n", e.what());
+        nesfrvr.stop();
+    } catch (TerminationException &e) {
+        LOG_WARN("Terminated by Termination Signal {}\n", e.what());
+        nesfrvr.stop();
+    } catch (std::exception &e) {
+        LOG_ERR("[ERROR]: %s\n", e.what());
+        nesfrvr.stop();
+    }
+
+    return ret;
 }
 #endif // NESFR_VR_MAIN_FUNC

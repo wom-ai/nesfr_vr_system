@@ -70,13 +70,14 @@ protected:
     struct CameraDesc camera_desc_right;
     struct StereoViewProperty stereo_view_property;
     struct CameraDesc camera_desc_main;
-    struct AudioInDesc audioin_desc;
-    struct AudioOutDesc audioout_desc;
+    struct AudioInDesc audio_in_desc;
+    struct AudioOutDesc audio_out_desc;
 
     GstElement *pipeline_stereo_left = nullptr;
     GstElement *pipeline_stereo_right = nullptr;
     GstElement *pipeline_main = nullptr;
-    GstElement *pipeline_audio = nullptr;
+    GstElement *pipeline_audio_in = nullptr;
+    GstElement *pipeline_audio_out = nullptr;
 
     std::shared_ptr<BaseStereoCamera> stereo_camera_ptr = nullptr;
     std::shared_ptr<BaseCamera> camera_ptr = nullptr;
@@ -89,8 +90,8 @@ public:
                     , const struct CameraDesc &camera_desc_right
                     , const struct StereoViewProperty &stereo_view_property
                     , const struct CameraDesc &camera_desc_main
-                    , const struct AudioInDesc &audioin_desc
-                    , const struct AudioOutDesc &audioout_desc
+                    , const struct AudioInDesc &audio_in_desc
+                    , const struct AudioOutDesc &audio_out_desc
                     );
     ~VideoStreamer(void);
 

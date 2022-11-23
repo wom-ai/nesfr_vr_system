@@ -31,7 +31,6 @@ protected:
     int device_options = 0x0;
     int stream_state = 0;
 
-    std::string ip_addr;
     std::string interface_name;
 public:
     NesfrVR(void);

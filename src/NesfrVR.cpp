@@ -403,22 +403,23 @@ int NesfrVR::_init(void)
         return -1;
     }
 
-    if (NetUtils::getIPAddrbyHWAddr(interface_name, ip_addr, root["network"]["mac_addr"].asString()) < 0)
-    {
+    std::string ip_addr;
+    if (NetUtils::getIPAddrbyHWAddr(interface_name, ip_addr, root["network"]["mac_addr"].asString()) < 0) {
+        LOG_ERR("getIPAddrbyHWAddr() falied");
         return -1;
     }
     LOG_INFO("ip_addr = {}", ip_addr.c_str());
 
-    if (!NetUtils::find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-        fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
+    if (NetUtils::findHeadsetIPAddrbyHWAddr(headset_ip, headset_A_mac_addr) < 0) {
+        LOG_ERR("Couldn't find VR Headset");
 
         while(system_on) {
             if (!NetUtils::call_nmap(ip_addr.c_str())) {
                 fprintf(stderr, "[ERROR] Couldn't call nmap.\n");
                 return -1;
             }
-            if (!NetUtils::find_headset_ip_by_MACAddr(headset_A_mac_addr, headset_ip)) {
-                fprintf(stderr, "[ERROR] Couldn't find VR Headset.\n");
+            if (NetUtils::findHeadsetIPAddrbyHWAddr(headset_ip, headset_A_mac_addr) < 0) {
+                LOG_ERR("Couldn't find VR Headset");
                 if (_playAudioGuide("CouldntFindAnyVRHeadset.ogg") < 0)
                     return -1;
 

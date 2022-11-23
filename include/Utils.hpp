@@ -38,9 +38,8 @@ public:
      * reference
      *   - https://www.cplusplus.com/reference/cstring/strtok/
      */
-    static bool find_headset_ip_by_MACAddr(const std::string &mac_addr, std::string &ip)
+    static int findHeadsetIPAddrbyHWAddr(std::string &ip_addr, const std::string &hw_addr)
     {
-        bool ret = false;
         FILE *pin = nullptr;
         pin = popen("arp -n","r");
         if (!pin)
@@ -71,16 +70,16 @@ public:
     //        if (tokens.size() > 0)
     //            printf("%s\n", tokens[0].c_str());
     //
-            if (tokens.size() == 5 && tokens[2].compare(mac_addr) == 0) {
-                ip = tokens[0];
-                printf("- found VR Headset:%s", ip.c_str());
-                ret = true;
+            if (tokens.size() == 5 && tokens[2].compare(hw_addr) == 0) {
+                ip_addr = tokens[0];
+                printf("- found VR Headset:%s", ip_addr.c_str());
+                return 0;
                 break;
             }
             printf("\n");
         }
 
-        return ret;
+        return -1;
     }
 
     /*

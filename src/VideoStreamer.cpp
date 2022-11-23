@@ -72,8 +72,6 @@ int VideoStreamer::initGStreamer(void)
     std::string stereo_camera_right_dev_file;
 
     GError *error = NULL;
-    GError *error1 = NULL;
-    GError *error2 = NULL;
     GError *error_audio = NULL;
 
     gst_init (NULL, NULL);
@@ -86,10 +84,31 @@ int VideoStreamer::initGStreamer(void)
 
     // one eye of the stereo camera
     if (stereo_camera_ptr->getGStreamVideoSourceLeftStr(stereo_camera_left_dev_file) == 0) {
+        if (pipeline_stereo_left) {
+            fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+            return -1;
+        }
+
         printf(">> Stereo Camera (Left) (%s)\n", stereo_camera_left_dev_file.c_str());
+
         pipeline_stereo_left = gst_parse_launch
           (("v4l2src device=" + stereo_camera_left_dev_file + " ! image/jpeg, " + stereo_video_conf_str+ "  ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10000").data(), &error);
         //gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
+        if (!pipeline_stereo_left) {
+            if (error) {
+                gst_printerr ("[ERROR] pipeline_stereo_left could not be constructed: %s.\n", GST_STR_NULL (error->message));
+                g_clear_error (&error);
+            } else {
+                gst_printerr ("[ERROR] pipeline_stereo_left could not be constructed.\n");
+            }
+            return -1;
+        } else if (error) {
+            gst_printerr ("[WARNING] erroneous pipeline_stereo_left: %s\n", GST_STR_NULL (error->message));
+            g_clear_error (&error);
+            gst_object_unref (pipeline_stereo_left);
+            pipeline_stereo_left = nullptr;
+            return -1;
+        }
     } else {
         fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
         return -1;
@@ -100,10 +119,30 @@ int VideoStreamer::initGStreamer(void)
     {
         // one eye of the stereo camera
         if (stereo_camera_ptr->getGStreamVideoSourceRightStr(stereo_camera_right_dev_file) == 0) {
+            if (pipeline_stereo_right) {
+                fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+                return -1;
+            }
+
             printf(">> Stereo Camera (Right) (%s)\n", stereo_camera_right_dev_file.c_str());
             pipeline_stereo_right = gst_parse_launch
-              (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error1);
+              (("v4l2src device=" + stereo_camera_right_dev_file + " ! image/jpeg, " + stereo_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10001").data(), &error);
             //gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
+            if (!pipeline_stereo_right) {
+                if (error) {
+                    gst_printerr ("[ERROR] pipeline_stereo_right could not be constructed: %s.\n", GST_STR_NULL (error->message));
+                    g_clear_error (&error);
+                } else {
+                    gst_printerr ("[ERROR] pipeline_stereo_right could not be constructed.\n");
+                }
+                return -1;
+            } else if (error) {
+                gst_printerr ("[WARNING] erroneous pipeline_stereo_right: %s\n", GST_STR_NULL (error->message));
+                g_clear_error (&error);
+                gst_object_unref (pipeline_stereo_right);
+                pipeline_stereo_right = nullptr;
+                return -1;
+            }
         } else {
             fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
             return -1;
@@ -116,21 +155,44 @@ int VideoStreamer::initGStreamer(void)
         std::string main_video_conf_str = buf;
 
         if (camera_ptr->getGStreamVideoSourceStr(main_camera_dev_file) == 0) {
+            if (pipeline_main) {
+                fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+                return -1;
+            }
+
             printf(">> Main Camera (%s)\n", main_camera_dev_file.c_str());
             pipeline_main = gst_parse_launch
-              (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error2);
+              (("v4l2src device=" + main_camera_dev_file + " ! image/jpeg, " + main_video_conf_str + " ! rtpjpegpay ! udpsink host=" + headset_ip + " port=10003").data(), &error);
             //gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
+            if (!pipeline_main) {
+                if (error) {
+                    gst_printerr ("[ERROR] pipeline_main could not be constructed: %s.\n", GST_STR_NULL (error->message));
+                    g_clear_error (&error);
+                } else {
+                    gst_printerr ("[ERROR] pipeline_main could not be constructed.\n");
+                }
+                return -1;
+            } else if (error) {
+                gst_printerr ("[WARNING] erroneous pipeline_main: %s\n", GST_STR_NULL (error->message));
+                g_clear_error (&error);
+                gst_object_unref (pipeline_main);
+                pipeline_main = nullptr;
+                return -1;
+            }
         } else {
             fprintf(stderr, "[WARN] Couldn't open Main Camera\n");
         }
         printf("[INFO] Main Camera set up\n");
     }
 
-    sprintf(buf, "device=%s ", audio_in_desc.name.c_str());
-    std::string audio_conf_str = buf;
-
-    error_audio = NULL;
+    // Audio In
+    if (pipeline_audio_in) {
+        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
     if (audio_in_desc.type.compare("pulsesrc") == 0) {
+        sprintf(buf, "device=%s ", audio_in_desc.name.c_str());
+        std::string audio_conf_str = buf;
         // 0
 //        pipeline_audio_in = gst_parse_launch
 //            (("pulsesrc " + audio_conf_str + " ! alawenc ! rtppcmapay !application/x-rtp, payload=8, clock-rate=8000 ! udpsink host=" + headset_ip + " port=10004").data(), &error_audio);
@@ -162,14 +224,20 @@ int VideoStreamer::initGStreamer(void)
         gst_printerr ("[WARNING] erroneous pipeline_audio_in: %s\n",
                 GST_STR_NULL (error_audio->message));
         g_clear_error (&error_audio);
+        gst_object_unref (pipeline_audio_in);
+        pipeline_audio_in = nullptr;
         return -1;
     }
 
-    error_audio = NULL;
+    // Audio Out
+    if (pipeline_audio_out) {
+        fprintf(stderr, "[ERROR] %s:%d\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
     if (audio_out_desc.type.compare("pulsesink") == 0) {
+
         std::string launch_str = "udpsrc port=10000 !application/x-rtp, media=audio, clock-rate=44100, encoding-name=L16, channels=1 ! rtpL16depay ! audioconvert ! queue ! pulsesink volume=10.0 device=" + audio_out_desc.name;
-        pipeline_audio_out = gst_parse_launch
-            (launch_str.c_str(), &error_audio);
+        pipeline_audio_out = gst_parse_launch (launch_str.c_str(), &error_audio);
         printf("[INFO] Audio-Out set up (%s)\n", launch_str.c_str());
     } else {
         fprintf(stderr, "[WARN] Couldn't open Audio-Out\n");
@@ -188,26 +256,11 @@ int VideoStreamer::initGStreamer(void)
         gst_printerr ("[WARNING] erroneous pipeline_audio_out: %s\n",
                 GST_STR_NULL (error_audio->message));
         g_clear_error (&error_audio);
+        gst_object_unref (pipeline_audio_out);
+        pipeline_audio_out = nullptr;
         return -1;
     }
 
-    if (error != NULL) {
-        g_clear_error (&error);
-        g_error("Couldn't launch the pipeline_stereo_left");
-        return -1;
-    }
-
-    if (error1 != NULL) {
-        g_clear_error (&error1);
-        g_error("Couldn't launch the pipeline_stereo_right");
-        return -1;
-    }
-
-    if (error2 != NULL) {
-        g_clear_error (&error2);
-        g_error("Couldn't launch the pipeline_main");
-        return -1;
-    }
     return 0;
 }
 
@@ -218,42 +271,72 @@ int VideoStreamer::deinitGStreamer(void)
     if (pipeline_stereo_left) {
         gst_element_set_state (pipeline_stereo_left, GST_STATE_NULL);
         gst_object_unref (pipeline_stereo_left);
+        pipeline_stereo_left = nullptr;
     }
 
     // gst_object_unref (bus1);
     if (pipeline_stereo_right) {
         gst_element_set_state (pipeline_stereo_right, GST_STATE_NULL);
         gst_object_unref (pipeline_stereo_right);
+        pipeline_stereo_right = nullptr;
     }
 
     if (pipeline_main) {
         gst_element_set_state (pipeline_main, GST_STATE_NULL);
         gst_object_unref (pipeline_main);
+        pipeline_main = nullptr;
     }
 
     if (pipeline_audio_in) {
         gst_element_set_state (pipeline_audio_in, GST_STATE_NULL);
         gst_object_unref (pipeline_audio_in);
+        pipeline_audio_in = nullptr;
     }
 
     if (pipeline_audio_out) {
         gst_element_set_state (pipeline_audio_out, GST_STATE_NULL);
         gst_object_unref (pipeline_audio_out);
+        pipeline_audio_out = nullptr;
     }
     return 0;
 }
 
 int VideoStreamer::playStream(void)
 {
-    if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
-    if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
-    if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
+    if (pipeline_stereo_left) {
+        GstStateChangeReturn ret = gst_element_set_state(pipeline_stereo_left, GST_STATE_PLAYING);
+        if (ret == GST_STATE_CHANGE_FAILURE) {
+            g_printerr ("[ERROR] Unable to set pipeline_stereo_left GST_STATE_PLAYING\n");
+            gst_object_unref (pipeline_stereo_left);
+            pipeline_stereo_left = nullptr;
+            return -1;
+        }
+    }
+    if (pipeline_stereo_right) {
+        GstStateChangeReturn ret = gst_element_set_state(pipeline_stereo_right, GST_STATE_PLAYING);
+        if (ret == GST_STATE_CHANGE_FAILURE) {
+            g_printerr ("[ERROR] Unable to set pipeline_stereo_right GST_STATE_PLAYING\n");
+            gst_object_unref (pipeline_stereo_right);
+            pipeline_stereo_right = nullptr;
+            return -1;
+        }
+    }
+    if (pipeline_main) {
+        GstStateChangeReturn ret = gst_element_set_state(pipeline_main, GST_STATE_PLAYING);
+        if (ret == GST_STATE_CHANGE_FAILURE) {
+            g_printerr ("[ERROR] Unable to set pipeline_main GST_STATE_PLAYING\n");
+            gst_object_unref (pipeline_main);
+            pipeline_main = nullptr;
+            return -1;
+        }
+    }
 
     if (pipeline_audio_in) {
         GstStateChangeReturn ret = gst_element_set_state (pipeline_audio_in, GST_STATE_PLAYING);
         if (ret == GST_STATE_CHANGE_FAILURE) {
             g_printerr ("[ERROR] Unable to set pipeline_audio_in GST_STATE_PLAYING\n");
             gst_object_unref (pipeline_audio_in);
+            pipeline_audio_in = nullptr;
             return -1;
         }
     }
@@ -263,6 +346,7 @@ int VideoStreamer::playStream(void)
         if (ret == GST_STATE_CHANGE_FAILURE) {
             g_printerr ("[ERROR] Unable to set pipeline_audio_out GST_STATE_PLAYING\n");
             gst_object_unref (pipeline_audio_out);
+            pipeline_audio_out = nullptr;
             return -1;
         }
     }
@@ -272,14 +356,40 @@ int VideoStreamer::playStream(void)
 
 int VideoStreamer::stopStream(void)
 {
-    if (pipeline_stereo_left) gst_element_set_state(pipeline_stereo_left, GST_STATE_PAUSED);
-    if (pipeline_stereo_right) gst_element_set_state(pipeline_stereo_right, GST_STATE_PAUSED);
-    if (pipeline_main) gst_element_set_state(pipeline_main, GST_STATE_PAUSED);
+    if (pipeline_stereo_left) {
+        GstStateChangeReturn ret = gst_element_set_state (pipeline_stereo_left, GST_STATE_PAUSED);
+        if (ret == GST_STATE_CHANGE_FAILURE) {
+            g_printerr ("[ERROR] Unable to set pipeline_stereo_left GST_STATE_PAUSED\n");
+            gst_object_unref (pipeline_stereo_left);
+            pipeline_stereo_left = nullptr;
+            return -1;
+        }
+    }
+    if (pipeline_stereo_right) {
+        GstStateChangeReturn ret = gst_element_set_state (pipeline_stereo_right, GST_STATE_PAUSED);
+        if (ret == GST_STATE_CHANGE_FAILURE) {
+            g_printerr ("[ERROR] Unable to set pipeline_stereo_right GST_STATE_PAUSED\n");
+            gst_object_unref (pipeline_stereo_right);
+            pipeline_stereo_right = nullptr;
+            return -1;
+        }
+    }
+    if (pipeline_main) {
+        GstStateChangeReturn ret = gst_element_set_state (pipeline_main, GST_STATE_PAUSED);
+        if (ret == GST_STATE_CHANGE_FAILURE) {
+            g_printerr ("[ERROR] Unable to set pipeline_main GST_STATE_PAUSED\n");
+            gst_object_unref (pipeline_main);
+            pipeline_main = nullptr;
+            return -1;
+        }
+    }
+
     if (pipeline_audio_in) {
         GstStateChangeReturn ret = gst_element_set_state (pipeline_audio_in, GST_STATE_PAUSED);
         if (ret == GST_STATE_CHANGE_FAILURE) {
             g_printerr ("[ERROR] Unable to set pipeline_audio_in GST_STATE_PAUSED\n");
             gst_object_unref (pipeline_audio_in);
+            pipeline_audio_in = nullptr;
             return -1;
         }
     }
@@ -289,6 +399,7 @@ int VideoStreamer::stopStream(void)
         if (ret == GST_STATE_CHANGE_FAILURE) {
             g_printerr ("[ERROR] Unable to set pipeline_audio_out GST_STATE_PAUSED\n");
             gst_object_unref (pipeline_audio_out);
+            pipeline_audio_out = nullptr;
             return -1;
         }
     }

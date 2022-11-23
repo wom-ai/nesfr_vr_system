@@ -354,7 +354,7 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
                         }
                     case RemoteCtrlCmd::STOP:
                         {
-                            printf(">>> STOP\n");
+                            LOG_INFO(">>> STOP\n");
                             stream_state = 0;
                             if (streamer_ptr->stopStream() < 0) {
                                 LOG_ERR("streamer_ptr->stopStream() failed");
@@ -558,6 +558,7 @@ int NesfrVR::run(void)
         stop();
     }
 
+    streamer_ptr->deinitGStreamer();
     conn.deinit();
 
     if (_deinit() < 0)

@@ -295,7 +295,7 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
 
         if (streamer_ptr->initGStreamer() < 0)
         {
-            perror ("gstreamer initialization failed.");
+            LOG_ERR("gstreamer initialization failed.");
             return -1;
         }
 
@@ -342,7 +342,10 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
                         {
                             LOG_INFO(">>> PLAY\n");
                             stream_state = 1;
-                            streamer_ptr->playStream();
+                            if (streamer_ptr->playStream() < 0) {
+                                LOG_ERR("streamer_ptr->playStream() failed");
+                                return -1;
+                            }
                             if (conn.write_streamstate(stream_state) < 0) {
                                 fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
                                 return -1;
@@ -353,7 +356,10 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
                         {
                             printf(">>> STOP\n");
                             stream_state = 0;
-                            streamer_ptr->stopStream();
+                            if (streamer_ptr->stopStream() < 0) {
+                                LOG_ERR("streamer_ptr->stopStream() failed");
+                                return -1;
+                            }
                             if (conn.write_streamstate(stream_state) < 0) {
                                 fprintf(stderr, "[ERROR] writeid failed, %s(%d)\n", strerror(errno), errno);
                                 return -1;
@@ -369,7 +375,7 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
         }
         if (streamer_ptr->deinitGStreamer() < 0)
         {
-            perror ("gstreamer deinitialization failed.");
+            LOG_ERR("gstreamer deinitialization failed.");
             return -1;
         }
     }
@@ -540,6 +546,7 @@ int NesfrVR::run(void)
     try {
         // main loop
         _mainLoop(conn);
+        stop();
     } catch (InterruptException &e) {
         LOG_WARN("Terminated by Interrrupt Signal {}\n", e.what());
         stop();
@@ -604,6 +611,8 @@ int main(int argc, char *argv[])
         LOG_ERR("[ERROR]: %s\n", e.what());
         nesfrvr.stop();
     }
+
+    LOG_INFO("System is shut down");
 
     return ret;
 }

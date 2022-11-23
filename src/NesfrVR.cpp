@@ -270,7 +270,7 @@ int NesfrVR::_playAudioGuide(const std::string filename, const double volume)
 #ifdef _AUDIO_GUIDE_
     static const filesystem::path home_dir_path{getenv("HOME")};
     const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/filename.c_str()};
-    if (audio_player_ptr->playOggFile(data_dir_path.string(), volume))
+    if (audio_player_ptr && audio_player_ptr->playOggFile(data_dir_path.string(), volume))
         return -1;
 #endif
     return 0;
@@ -380,12 +380,14 @@ int NesfrVR::_init(void)
 {
 
 #ifdef _AUDIO_GUIDE_
-    audio_player_ptr = std::make_shared<AudioPlayer>(root["video_stream_device"]["audio-out"]["type"].asString(),
-            root["video_stream_device"]["audio-out"]["name"].asString());
+    audio_player_ptr = std::make_shared<AudioPlayer>(root["video_stream_device"]["audio-out"]["type"].asString(), root["video_stream_device"]["audio-out"]["name"].asString());
+#endif
+
+#ifdef _AUDIO_GUIDE_
     {
         const filesystem::path home_dir_path{getenv("HOME")};
         const filesystem::path data_dir_path{home_dir_path/DATA_DIR_PATH/"Intro.wav"};
-        if (audio_player_ptr->playWavFile(data_dir_path.string()))
+        if (audio_player_ptr && audio_player_ptr->playWavFile(data_dir_path.string(), 0.5))
             return -1;
     }
 #endif

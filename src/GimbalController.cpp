@@ -18,6 +18,11 @@ GimbalController::GimbalController( std::atomic_bool &system_on
         LOG_INFO("Base Gimbal type={}", gimbal_desc.type.c_str());
         LOG_INFO("            name={}", gimbal_desc.name.c_str());
         gimbal_ptr = std::make_shared<RS2>(system_on, gimbal_desc.can_ch);
+    } else if (gimbal_desc.type.compare("RS3 Pro") == 0|| gimbal_desc.type.compare("rs3 pro") == 0) {
+
+        LOG_INFO("Base Gimbal type={}", gimbal_desc.type.c_str());
+        LOG_INFO("            name={}", gimbal_desc.name.c_str());
+        gimbal_ptr = std::make_shared<RS2>(system_on, gimbal_desc.can_ch);
     } else {
         LOG_ERR("Wrong configuration for VR Gimbal ({})", gimbal_desc.type.c_str());
         throw std::runtime_error("Wrong configuration for VR Gimbal");

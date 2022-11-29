@@ -6,7 +6,7 @@
     },
     "gimbal":
     {
-        "type": "RS2",
+        "type": "RS3 Pro",
         "name": "noname",
         "can_ch": 0
     },

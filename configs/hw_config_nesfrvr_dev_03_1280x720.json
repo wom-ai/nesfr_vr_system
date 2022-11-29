@@ -4,6 +4,12 @@
     {
         "mac_addr": "58:86:94:f3:1c:48"
     },
+    "gimbal":
+    {
+        "type": "RS3 Pro",
+        "name": "noname",
+        "can_ch": 0
+    },
     "video_stream_device":
     {
         "stereo_camera":

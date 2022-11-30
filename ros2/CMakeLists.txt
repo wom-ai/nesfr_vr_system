@@ -8,7 +8,7 @@ endif()
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -21,10 +21,62 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-add_executable(nesfrvr_ros2 src/nesfrvr_ros2.cpp)
+find_package(PkgConfig REQUIRED) #finding pkg-config is a helper tool
+
+find_package(spdlog REQUIRED)
+
+#using pkg-config to getting jsoncpp
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+
+#using pkg-config to getting Gstreamer
+pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
+
+add_executable(nesfrvr_ros2
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/NesfrVR.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/RoverController.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/GimbalController.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/V4L2Device.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/V4L2Camera.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/VideoStreamer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/CtrlClient.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/custom_crc16.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/custom_crc32.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/RS2Ctrl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/RS2.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/Joystick.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/Wheel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/VRJoystick.cpp
+    )
 target_include_directories(nesfrvr_ros2 PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include
+    ${JSONCPP_INCLUDE_DIRS}
+    ${GSTREAMER_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/include
+    )
+
+target_compile_definitions(
+    ${PROJECT_NAME} PUBLIC
+    __SPDLOG__
+    __GIT_BRANCH__="${GIT_BRANCH}"
+    __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
+    NESFR_VR_MAIN_FUNC
+    _AUDIO_GUIDE_
+    )
+
+#linking library with target executable
+target_link_libraries(
+    ${PROJECT_NAME}
+    ${JSONCPP_LIBRARIES}
+    ${GSTREAMER_LIBRARIES}
+    stdc++fs
+    spdlog::spdlog
+    pthread
+    )
 
 install(TARGETS nesfrvr_ros2
   DESTINATION lib/${PROJECT_NAME})

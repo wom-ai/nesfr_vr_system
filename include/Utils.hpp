@@ -17,7 +17,8 @@ public:
     {
         FILE *pin = nullptr;
         char buffer[128];
-        sprintf(buffer, "nmap -sn %s/24", ip_addr);
+        sprintf(buffer, "nmap %s/24", ip_addr);
+        printf("[INFO] run (%s)\n", buffer);
         pin = popen(buffer,"r");
         if (!pin)
             return false;
@@ -41,7 +42,10 @@ public:
     static int findHeadsetIPAddrbyHWAddr(std::string &ip_addr, const std::string &hw_addr)
     {
         FILE *pin = nullptr;
-        pin = popen("arp -n","r");
+        char buffer[128];
+        sprintf(buffer, "arp -n");
+        printf("[INFO] run (%s)\n", buffer);
+        pin = popen(buffer,"r");
         if (!pin)
             return false;
 

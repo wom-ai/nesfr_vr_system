@@ -5,6 +5,10 @@ RUN echo "dev_name=${dev_name}"
 
 ENV DEBIAN_FRONTEND noninteractive
 
+# set ROS_DOMAIN_ID
+# https://roboticsbackend.com/ros2-multiple-machines-including-raspberry-pi/
+ENV ROS_DOMAIN_ID=5
+
 # install dev tools
 COPY ./docker/nesfr_vr_entrypoint.sh /
 RUN chmod a+x /nesfr_vr_entrypoint.sh

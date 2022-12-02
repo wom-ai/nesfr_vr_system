@@ -2,6 +2,10 @@ FROM osrf/ros:humble-desktop
 
 ENV DEBIAN_FRONTEND noninteractive
 
+# set ROS_DOMAIN_ID
+# https://roboticsbackend.com/ros2-multiple-machines-including-raspberry-pi/
+ENV ROS_DOMAIN_ID=5
+
 # install dev tools
 COPY ./docker/.tmux.conf /root
 RUN apt-get update

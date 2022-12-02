@@ -31,32 +31,37 @@ pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 #using pkg-config to getting Gstreamer
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 
-add_executable(nesfr_vr_ros2
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/NesfrVR.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/RoverController.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/GimbalController.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/V4L2Device.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/V4L2Camera.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/VideoStreamer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/src/CtrlClient.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/custom_crc16.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/custom_crc32.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/RS2Ctrl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/src/RS2.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/Joystick.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/Wheel.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/VRJoystick.cpp
+set(PROJECT_ROOT_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../..
     )
+
+add_executable(nesfr_vr_ros2
+    ${PROJECT_ROOT_DIR}/src/NesfrVR.cpp
+    ${PROJECT_ROOT_DIR}/src/RoverController.cpp
+    ${PROJECT_ROOT_DIR}/src/GimbalController.cpp
+    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/V4L2Device.cpp
+    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/V4L2Camera.cpp
+    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
+    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/VideoStreamer.cpp
+    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/CtrlClient.cpp
+    ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/src/custom_crc16.c
+    ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/src/custom_crc32.c
+    ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/src/RS2Ctrl.cpp
+    ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/src/RS2.cpp
+    ${PROJECT_ROOT_DIR}/nesfr4_control/src/Joystick.cpp
+    ${PROJECT_ROOT_DIR}/nesfr4_control/src/Wheel.cpp
+    ${PROJECT_ROOT_DIR}/nesfr4_control/src/VRJoystick.cpp
+    )
+
 target_include_directories(nesfr_vr_ros2 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include
+    ${PROJECT_ROOT_DIR}/include
     ${JSONCPP_INCLUDE_DIRS}
     ${GSTREAMER_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_video_streamer/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr_vr_ctrl/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/include
+    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/include
+    ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/include
+    ${PROJECT_ROOT_DIR}/nesfr4_control/include
     )
 
 target_compile_definitions(

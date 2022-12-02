@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nesfrvr_ros2)
+project(nesfr_vr_ros2)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -31,7 +31,7 @@ pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 #using pkg-config to getting Gstreamer
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 
-add_executable(nesfrvr_ros2
+add_executable(nesfr_vr_ros2
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/NesfrVR.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/RoverController.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/GimbalController.cpp
@@ -48,7 +48,7 @@ add_executable(nesfrvr_ros2
     ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/Wheel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../nesfr4_control/src/VRJoystick.cpp
     )
-target_include_directories(nesfrvr_ros2 PUBLIC
+target_include_directories(nesfr_vr_ros2 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
@@ -78,7 +78,7 @@ target_link_libraries(
     pthread
     )
 
-install(TARGETS nesfrvr_ros2
+install(TARGETS nesfr_vr_ros2
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

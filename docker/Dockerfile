@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 COPY ./docker/.tmux.conf /root
 RUN apt-get update
 RUN apt-get install -y apt-utils
-RUN apt-get install -y vim tree htop tmux gdb
+RUN apt-get install -y vim tree htop tmux gdb net-tools iputils-ping
 
 
 # install python3 utils

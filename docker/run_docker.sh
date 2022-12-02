@@ -18,7 +18,8 @@ touch $XAUTH
 xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 
 
-docker run  --gpus '"device=0"' --rm -it \
+docker run --rm -it --net=host \
+        --gpus '"device=0"' \
         --volume=$XSOCK:$XSOCK:rw \
         --volume=$XAUTH:$XAUTH:rw \
         --env="XAUTHORITY=${XAUTH}" \

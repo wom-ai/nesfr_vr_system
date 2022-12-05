@@ -19,7 +19,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 find_package(PkgConfig REQUIRED) #finding pkg-config is a helper tool
 
@@ -51,7 +52,12 @@ add_executable(nesfr_vr_ros2
     ${PROJECT_ROOT_DIR}/nesfr4_control/src/Joystick.cpp
     ${PROJECT_ROOT_DIR}/nesfr4_control/src/Wheel.cpp
     ${PROJECT_ROOT_DIR}/nesfr4_control/src/VRJoystick.cpp
+    ${PROJECT_ROOT_DIR}/src/Nesfr7ROS2.cpp
     )
+
+ament_target_dependencies(nesfr_vr_ros2
+    "rclcpp"
+    "geometry_msgs")
 
 target_include_directories(nesfr_vr_ros2 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -71,6 +77,7 @@ target_compile_definitions(
     __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
     NESFR_VR_MAIN_FUNC
     _AUDIO_GUIDE_
+    _ROS2_
     )
 
 #linking library with target executable

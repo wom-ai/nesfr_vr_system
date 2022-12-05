@@ -1,6 +1,8 @@
 #include "RoverController.hpp"
 #include "Nesfr4.hpp"
-
+#ifdef _ROS2_
+#include "Nesfr7ROS2.hpp"
+#endif
 #include "logging.hpp"
 
 #ifdef __SPDLOG__
@@ -18,9 +20,10 @@ RoverController::RoverController( std::atomic_bool &system_on
         LOG_INFO("Basee Rover type={}", rover_desc.type.c_str());
         LOG_INFO("            name={}", rover_desc.name.c_str());
         rover_ptr = std::make_shared<Nesfr4>(system_on);
-
+#ifdef _ROS2_
     } else if (rover_desc.type.compare("NESFR7_ROS2") == 0|| rover_desc.type.compare("Nesfr7_ROS2") == 0){
 
+#endif
     } else {
         LOG_ERR("Wrong configuration for VR Rover ({})", rover_desc.type.c_str());
         throw std::runtime_error("Wrong configuration for VR Rover");

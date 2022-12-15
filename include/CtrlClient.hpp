@@ -10,6 +10,7 @@ enum class HeadsetCtrlCmd{
     REGISTER,
     PUT_STREAM_STATE,
     PUT_STEREO_CAMERA_PROPERTY,
+    PUT_DESTINATION_ARRAY,
 };
 
 enum class RemoteCtrlCmd{

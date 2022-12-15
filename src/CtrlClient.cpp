@@ -172,7 +172,7 @@ int CtrlClient::write_id()
 
 int CtrlClient::write_streamstate(const unsigned int play)
 {
-    HeadsetCtrlCmdMsg msg = { build_header((unsigned int)HeadsetCtrlCmd::STREAM_STATE, 0), (int)play, 0, 0,};
+    HeadsetCtrlCmdMsg msg = { build_header((unsigned int)HeadsetCtrlCmd::PUT_STREAM_STATE, 0), (int)play, 0, 0,};
     return _write((const void *)&msg, sizeof(msg));
 }
 

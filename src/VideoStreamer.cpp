@@ -349,6 +349,7 @@ int VideoStreamer::playStream(void)
             pipeline_audio_out = nullptr;
             return -1;
         }
+        printf("[INFO] Succeed to set pipeline_audio_out GST_STATE_PLAYING\n");
     }
 
     return 0;
@@ -402,6 +403,7 @@ int VideoStreamer::stopStream(void)
             pipeline_audio_out = nullptr;
             return -1;
         }
+        printf("[INFO] Succeed to set pipeline_audio_out GST_STATE_PAUSED\n");
     }
 
     return 0;
@@ -432,7 +434,7 @@ int VideoStreamer::run(CtrlClient &conn)
             return -1;
         }
 
-        HeadsetCtrlCmdMsg msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY, sizeof(StereoViewProperty)), 0, 0, 0,};
+        HeadsetCtrlCmdMsg msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::PUT_STEREO_CAMERA_PROPERTY, sizeof(StereoViewProperty)), 0, 0, 0,};
         if (conn.write_cmd(msg) < 0) {
             fprintf(stderr, "[ERROR] write_cmd() failed, %s(%d)\n", strerror(errno), errno);
             return -1;

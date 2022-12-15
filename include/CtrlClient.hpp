@@ -8,8 +8,8 @@
 enum class HeadsetCtrlCmd{
     NONE = 0,
     REGISTER,
-    STREAM_STATE,
-    STEREO_CAMERA_PROPERTY,
+    PUT_STREAM_STATE,
+    PUT_STEREO_CAMERA_PROPERTY,
 };
 
 enum class RemoteCtrlCmd{

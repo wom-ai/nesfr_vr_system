@@ -15,6 +15,8 @@ RoverController::RoverController( std::atomic_bool &system_on
     : system_on(system_on)
     , rover_desc(rover_desc)
 {
+    thread_mutex_ptr = std::make_shared<std::mutex>();
+
     if (rover_desc.type.compare("NESFR4") == 0|| rover_desc.type.compare("Nesfr4") == 0) {
 
         LOG_INFO("Basee Rover type={}", rover_desc.type.c_str());
@@ -63,4 +65,10 @@ int RoverController::initSession(void)
 int RoverController::deinitSession(void)
 {
     return 0;
+}
+
+void RoverController::getDestinationArray(std::vector<struct DestinationDesc> &destination_array) const
+{
+    std::unique_lock<std::mutex> lock(*thread_mutex_ptr);
+    destination_array = this->destination_array;
 }

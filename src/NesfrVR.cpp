@@ -304,17 +304,34 @@ int NesfrVR::_mainLoop(CtrlClient &conn)
             fprintf(stderr, "[ERROR] write_id() failed, %s(%d)\n", strerror(errno), errno);
             return -1;
         }
+        {
+            HeadsetCtrlCmdMsg msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::PUT_STEREO_CAMERA_PROPERTY, sizeof(StereoViewProperty)), 0, 0, 0,};
+            if (conn.write_cmd(msg) < 0) {
+                fprintf(stderr, "[ERROR] write_cmd() failed, %s(%d)\n", strerror(errno), errno);
+                return -1;
+            }
 
-        HeadsetCtrlCmdMsg msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY, sizeof(StereoViewProperty)), 0, 0, 0,};
-        if (conn.write_cmd(msg) < 0) {
-            fprintf(stderr, "[ERROR] write_cmd() failed, %s(%d)\n", strerror(errno), errno);
-            return -1;
+            struct StereoViewProperty stereo_view_property = streamer_ptr->getStereoViewProperty();
+            if (conn.write_data((const void*)&stereo_view_property, sizeof(StereoViewProperty)) < 0) {
+                fprintf(stderr, "[ERROR] write_data(HeadsetCtrlCmd::PUT_STEREO_CAMERA_PROPERTY) failed, %s(%d)\n", strerror(errno), errno);
+                return -1;
+            }
         }
+        if (rover_controller_ptr)
+        {
+            std::vector<struct DestinationDesc> destination_array;
+            rover_controller_ptr->getDestinationArray(destination_array);
+            int size = destination_array.size()*sizeof(struct DestinationDesc);
+            HeadsetCtrlCmdMsg msg = { conn.build_header((unsigned int)HeadsetCtrlCmd::PUT_DESTINATION_ARRAY, size), 0, 0, 0,};
+            if (conn.write_cmd(msg) < 0) {
+                fprintf(stderr, "[ERROR] write_cmd() failed, %s(%d)\n", strerror(errno), errno);
+                return -1;
+            }
 
-        struct StereoViewProperty stereo_view_property = streamer_ptr->getStereoViewProperty();
-        if (conn.write_data((const void*)&stereo_view_property, sizeof(StereoViewProperty)) < 0) {
-            fprintf(stderr, "[ERROR] write_data(HeadsetCtrlCmd::STEREO_CAMERA_PROPERTY) failed, %s(%d)\n", strerror(errno), errno);
-            return -1;
+            if (conn.write_data((const void*)destination_array.data(), size) < 0) {
+                fprintf(stderr, "[ERROR] write_data(HeadsetCtrlCmd::PUT_DESTINATION_ARRAY) failed, %s(%d)\n", strerror(errno), errno);
+                return -1;
+            }
         }
 
         if (conn.write_streamstate(stream_state) < 0) {

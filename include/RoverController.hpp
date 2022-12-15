@@ -7,10 +7,21 @@
 #include <mutex>
 #include <memory>
 #include <thread>
+#include <vector>
 
 struct RoverDesc{
     std::string type;
     std::string name;
+};
+
+struct DestinationDesc{
+    char name[64];
+    char desc[64];
+    double x;
+    double y;
+    double z;
+    double w;
+    char reserved[32];
 };
 
 class RoverController
@@ -30,6 +41,13 @@ protected:
 
     void _ctrl_thread_func(void);
 
+    std::vector<struct DestinationDesc> destination_array = {
+        {{'d','u','m','m','y','0','0'}, {'t','h','i','s','i','s',' ','d','u','m','m','y'}, 0.0, 0.0, 0.0, 0.0, {0,}},
+        {{'d','u','m','m','y','0','1'}, {'t','h','i','s','i','s',' ','d','u','m','m','y'}, 0.0, 0.0, 0.0, 0.0, {0,}},
+        {{'d','u','m','m','y','0','2'}, {'t','h','i','s','i','s',' ','d','u','m','m','y'}, 0.0, 0.0, 0.0, 0.0, {0,}},
+        {{'d','u','m','m','y','0','3'}, {'t','h','i','s','i','s',' ','d','u','m','m','y'}, 0.0, 0.0, 0.0, 0.0, {0,}},
+    };
+
 public:
     RoverController( std::atomic_bool &system_on
                     , struct RoverDesc &rover_desc
@@ -44,6 +62,8 @@ public:
 
     int initSession(void);
     int deinitSession(void);
+
+    void getDestinationArray(std::vector<struct DestinationDesc> &destination_array) const;
 };
 #endif // ROVER_CONTROLLER_HPP
 

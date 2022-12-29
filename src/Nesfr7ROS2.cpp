@@ -116,7 +116,7 @@ void Nesfr7ROS2::ctrl_thread_func (void)
 
         auto node = rclcpp::Node::make_shared("nesfr_vr_controller");
 
-        auto publisher = node->create_publisher<geometry_msgs::msg::Twist>("/cmd_val", 10);
+        auto publisher = node->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
        
         geometry_msgs::msg::Twist twist_msg;
 

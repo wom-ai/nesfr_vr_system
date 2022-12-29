@@ -24,7 +24,7 @@ RoverController::RoverController( std::atomic_bool &system_on
         rover_ptr = std::make_shared<Nesfr4>(system_on);
 #ifdef _ROS2_
     } else if (rover_desc.type.compare("NESFR7_ROS2") == 0|| rover_desc.type.compare("Nesfr7_ROS2") == 0){
-
+        rover_ptr = std::make_shared<Nesfr7ROS2>(system_on);
 #endif
     } else {
         LOG_ERR("Wrong configuration for VR Rover ({})", rover_desc.type.c_str());

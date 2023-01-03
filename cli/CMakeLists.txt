@@ -36,11 +36,11 @@ add_executable(
     ../src/NesfrVR.cpp
     ../src/RoverController.cpp
     ../src/GimbalController.cpp
-    ../nesfr_vr_video_streamer/src/V4L2Device.cpp
-    ../nesfr_vr_video_streamer/src/V4L2Camera.cpp
-    ../nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
-    ../nesfr_vr_video_streamer/src/VideoStreamer.cpp
-    ../nesfr_vr_video_streamer/src/CtrlClient.cpp
+    ../video_streamer/src/V4L2Device.cpp
+    ../video_streamer/src/V4L2Camera.cpp
+    ../video_streamer/src/V4L2StereoCamera.cpp
+    ../video_streamer/src/VideoStreamer.cpp
+    ../video_streamer/src/CtrlClient.cpp
     ../nesfr_vr_ctrl/src/custom_crc16.c
     ../nesfr_vr_ctrl/src/custom_crc32.c
     ../nesfr_vr_ctrl/src/RS2Ctrl.cpp
@@ -66,7 +66,7 @@ target_include_directories(
     ./include
     ${JSONCPP_INCLUDE_DIRS}
     ${GSTREAMER_INCLUDE_DIRS}
-    ../nesfr_vr_video_streamer/include
+    ../video_streamer/include
     ../nesfr_vr_ctrl/include
     ../nesfr4_control/include
     )

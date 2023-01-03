@@ -40,11 +40,11 @@ add_executable(nesfr_vr_ros2
     ${PROJECT_ROOT_DIR}/src/NesfrVR.cpp
     ${PROJECT_ROOT_DIR}/src/RoverController.cpp
     ${PROJECT_ROOT_DIR}/src/GimbalController.cpp
-    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/V4L2Device.cpp
-    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/V4L2Camera.cpp
-    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/V4L2StereoCamera.cpp
-    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/VideoStreamer.cpp
-    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/src/CtrlClient.cpp
+    ${PROJECT_ROOT_DIR}/video_streamer/src/V4L2Device.cpp
+    ${PROJECT_ROOT_DIR}/video_streamer/src/V4L2Camera.cpp
+    ${PROJECT_ROOT_DIR}/video_streamer/src/V4L2StereoCamera.cpp
+    ${PROJECT_ROOT_DIR}/video_streamer/src/VideoStreamer.cpp
+    ${PROJECT_ROOT_DIR}/video_streamer/src/CtrlClient.cpp
     ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/src/custom_crc16.c
     ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/src/custom_crc32.c
     ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/src/RS2Ctrl.cpp
@@ -65,7 +65,7 @@ target_include_directories(nesfr_vr_ros2 PUBLIC
     ${PROJECT_ROOT_DIR}/include
     ${JSONCPP_INCLUDE_DIRS}
     ${GSTREAMER_INCLUDE_DIRS}
-    ${PROJECT_ROOT_DIR}/nesfr_vr_video_streamer/include
+    ${PROJECT_ROOT_DIR}/video_streamer/include
     ${PROJECT_ROOT_DIR}/nesfr_vr_ctrl/include
     ${PROJECT_ROOT_DIR}/nesfr4_control/include
     )

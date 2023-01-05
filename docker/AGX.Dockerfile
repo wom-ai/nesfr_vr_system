@@ -11,6 +11,7 @@ ENV ROS_DOMAIN_ID=5
 
 # install dev tools
 COPY ./docker/nesfr_vr_entrypoint.sh /
+COPY ./ros2/run_release_nesfr_vr_ros2.sh /
 RUN chmod a+x /nesfr_vr_entrypoint.sh
 
 COPY ./docker/.tmux.conf /root
@@ -57,7 +58,8 @@ RUN apt-get update
 
 RUN apt-get install -y ros-foxy-ros-base
 RUN apt-get install -y ros-dev-tools
-RUN apt-get install -y ros-foxy-desktop python3-argcomplete
+RUN apt-get install -y python3-argcomplete
+#RUN apt-get install -y ros-foxy-desktop
 
 ENTRYPOINT ["/nesfr_vr_entrypoint.sh"]
 CMD ["bash"]

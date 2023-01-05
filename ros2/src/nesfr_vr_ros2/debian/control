@@ -1,0 +1,13 @@
+source: ros-foxy-nesfr-vr-ros2
+Section: misc
+Priority: optional
+Maintainer: Jaeyoung Lee <jy@wom.ai>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.5.0$  
+Homepage: 
+
+Package: ros-foxy-nesfr-vr-ros2
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: ros2 application for NESFR_VR 

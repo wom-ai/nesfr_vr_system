@@ -17,7 +17,6 @@ docker run -it --rm --net=host --runtime nvidia \
     --device-cgroup-rule='c 116:* rmw' \
     -v /run/udev:/run/udev:ro \
     -v /dev:/dev \
-    -v ${PWD}/..:/work \
-    -w /work/nesfr_vr_system/ros2 \
-    --name ros2_rover \
-    ros2_rover
+    -v /home/${USER}:/root \
+    --name ros2_rover_release \
+    ros2_rover_release /bin/bash -c "/run_release_nesfr_vr_ros2.sh"

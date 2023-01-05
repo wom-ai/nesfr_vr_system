@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#
+# references
+#  - https://ivanitlearning.wordpress.com/2019/10/27/writing-your-own-deb-package/
+#
+
+echo ">>> prerm"
+if [ -e "$HOME/.nesfrvr" ]; then
+  rm -rf $HOME/.nesfrvr
+fi
+echo "<<< prerm"

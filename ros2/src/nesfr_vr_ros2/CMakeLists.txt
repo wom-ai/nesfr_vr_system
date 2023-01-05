@@ -93,6 +93,9 @@ target_link_libraries(
 install(TARGETS nesfr_vr_ros2
   DESTINATION lib/${PROJECT_NAME})
 
+install(DIRECTORY ../../../configs ../../../data
+  DESTINATION share/${PROJECT_NAME})
+
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 

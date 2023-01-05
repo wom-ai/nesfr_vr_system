@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#
+# references
+#  - https://ivanitlearning.wordpress.com/2019/10/27/writing-your-own-deb-package/
+#
+echo ">>> postinst"
+if [ -e "$HOME/.nesfrvr" ] && [ -d "$HOME/.nesfrvr" ]; then
+  echo "Found $HOME/.nesfrvr"
+  rm -rf $HOME/.nesfrvr/*
+else
+  echo "Make $HOME/.nesfrvr"
+  mkdir -p  $HOME/.nesfrvr
+fi
+  
+mkdir -p  $HOME/.nesfrvr/configs
+ln -s /opt/ros/foxy/share/nesfr_vr_ros2/configs/hw_config_${HOSTNAME}_1280x720.json $HOME/.nesfrvr/configs/hw_config.json
+ln -s /opt/ros/foxy/share/nesfr_vr_ros2/data $HOME/.nesfrvr/data
+echo "<<< postinst"

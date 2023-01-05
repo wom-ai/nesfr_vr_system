@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#
+# references
+#  - https://ivanitlearning.wordpress.com/2019/10/27/writing-your-own-deb-package/
+#
+echo ">>> postrm"
+
+if [ $1 = 'remove' ]; then
+  echo "  >>> remove"
+  if [ -e "$HOME/.nesfrvr" ]; then
+    rm -rf $HOME/.nesfrvr
+  fi
+  echo "  <<< remove"
+fi
+if [ $1 = 'purge' ]; then
+  echo "  >>> purge"
+  echo "  <<< purge"
+fi
+echo "<<< postrm"

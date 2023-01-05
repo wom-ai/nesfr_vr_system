@@ -2,3 +2,14 @@ build/
 install/
 log/
 
+src/nesfr_vr_ros2/debian/.debhelper/
+src/nesfr_vr_ros2/debian/debhelper-build-stamp
+src/nesfr_vr_ros2/debian/files
+src/nesfr_vr_ros2/debian/ros-foxy-nesfr-vr-ros2.debhelper.log
+src/nesfr_vr_ros2/debian/ros-foxy-nesfr-vr-ros2.substvars
+src/nesfr_vr_ros2/debian/ros-foxy-nesfr-vr-ros2/
+src/nesfr_vr_ros2/obj-aarch64-linux-gnu/
+src/ros-foxy-nesfr-vr-ros2-dbgsym_*.*-*_arm64.ddeb
+src/ros-foxy-nesfr-vr-ros2_*.*-*_arm64.buildinfo
+src/ros-foxy-nesfr-vr-ros2_*.*-*_arm64.changes
+src/ros-foxy-nesfr-vr-ros2_*.*-*_arm64.deb

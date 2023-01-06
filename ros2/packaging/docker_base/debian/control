@@ -1,0 +1,13 @@
+source: nesfr-vr-ros2-docker
+Section: misc
+Priority: optional
+Maintainer: Jaeyoung Lee <jy@wom.ai>
+Build-Depends: debhelper-compat (= 12), nvidia-jetpack (>=5.0.2), nvidia-jetpack-dev (>=5.0.2), nvidia-jetpack-runtime (>=5.0.2), docker.io (>=20.10), nvidia-docker2 (>2.11)
+Standards-Version: 4.5.0$  
+Homepage: 
+
+Package: nesfr-vr-ros2-docker
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${shlibs:Depends}, nvidia-jetpack (>=5.0.2), nvidia-jetpack-dev (>=5.0.2), nvidia-jetpack-runtime (>=5.0.2), docker.io (>=20.10), nvidia-docker2 (>2.11)
+Description: docker base ros2 application for NESFR_VR

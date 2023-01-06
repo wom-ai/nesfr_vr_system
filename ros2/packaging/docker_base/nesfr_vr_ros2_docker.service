@@ -1,0 +1,44 @@
+#
+# references
+#  - https://www.freedesktop.org/software/systemd/man/systemd.service.html#
+#  - https://unix.stackexchange.com/questions/506347/why-do-most-systemd-examples-contain-wantedby-multi-user-target
+
+[Unit]
+Description=NESFR VR Service
+#ConditionPathExists=
+
+[Service]
+Type=simple
+#User=wom
+#ExecStartPre=
+#PIDFile=/var/run/nesfr_vr_ros2_docker.pid
+
+####################################################################################
+# FIXME: if you use /bin/sh -c "", you need to use /bin/kill -s TERM $MAINPID
+#ExecStart=/bin/sh -c '/home/wom/jylee/work/nesfr_vr_system/cli/build/nesfr_vr_system_cli'
+#ExecStop=/bin/kill -s TERM $MAINPID
+####################################################################################
+
+####################################################################################
+# FIXME: if you use a executable directlry, you don't need to use /bin/kill -s TERM $MAINPID
+#Environment=GST_DEBUG=3
+#ExecStart=/home/wom/jylee/work/nesfr_vr_system/cli/build/nesfr_vr_system_cli
+####################################################################################
+
+ExecStart=/usr/local/bin/nesfr_vr_ros2_docker.sh
+ExecStop=/bin/kill -s TERM $MAINPID
+#ExecReload=/usr/sbin/sshd -t
+#ExecReload=/bin/kill -HUP $MAINPID
+#KillMode=process
+Restart=on-failure
+RestartSec=5s
+#RestartPreventExitStatus=255
+#Type=notify
+#RuntimeDirectory=sshd
+#RuntimeDirectoryMode=0755
+
+[Install]
+#WantedBy=multi-user.target
+#WantedBy=gdm.service
+WantedBy=default.target
+Alias=nesfr_vr_ros2_docker.service

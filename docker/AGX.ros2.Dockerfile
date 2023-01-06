@@ -1,8 +1,5 @@
 FROM nvcr.io/nvidia/l4t-base:r35.1.0
 
-ARG dev_name
-RUN echo "dev_name=${dev_name}"
-
 ENV DEBIAN_FRONTEND noninteractive
 
 # set ROS_DOMAIN_ID
@@ -10,9 +7,8 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV ROS_DOMAIN_ID=5
 
 # install dev tools
-COPY ./docker/nesfr_vr_entrypoint.sh /
-COPY ./ros2/run_release_nesfr_vr_ros2.sh /
-RUN chmod a+x /nesfr_vr_entrypoint.sh
+COPY ./ros2/nesfr_vr_ros2_entrypoint.sh /
+COPY ./ros2/nesfr_vr_ros2_run_release.sh /
 
 COPY ./docker/.tmux.conf /root
 RUN apt-get update
@@ -29,9 +25,14 @@ RUN pip install --upgrade setuptools wheel
 RUN apt-get install -y nmap net-tools
 RUN apt-get install -y v4l-utils
 RUN apt-get install -y libjsoncpp-dev libspdlog-dev
-RUN mkdir -p /root/.nesfrvr/configs
-COPY ./data/ /root/.nesfrvr/data
-COPY ./configs/hw_config_${dev_name}_1280x720.json  /root/.nesfrvr/configs/hw_config.json
+
+# configure for nesfr_vr_ros2
+#ARG dev_name
+#RUN echo "dev_name=${dev_name}"
+#RUN mkdir -p /root/.nesfrvr/configs
+#COPY ./data/ /root/.nesfrvr/data
+#COPY ./configs/hw_config_${dev_name}_1280x720.json  /root/.nesfrvr/configs/hw_config.json
+
 #
 # reference for audio sound card
 #  - https://askubuntu.com/questions/70560/why-am-i-getting-this-connection-to-pulseaudio-failed-error
@@ -61,5 +62,5 @@ RUN apt-get install -y ros-dev-tools
 RUN apt-get install -y python3-argcomplete
 #RUN apt-get install -y ros-foxy-desktop
 
-ENTRYPOINT ["/nesfr_vr_entrypoint.sh"]
+ENTRYPOINT ["/nesfr_vr_ros2_entrypoint.sh"]
 CMD ["bash"]

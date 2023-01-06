@@ -18,4 +18,4 @@ docker run -it --rm --net=host --runtime nvidia \
     -v /run/udev:/run/udev:ro \
     -v /dev:/dev \
     --name ros2_rover_release \
-    stereoboy/aespa7:latest /bin/bash -c "/run_release_nesfr_vr_ros2.sh"
+    stereoboy/aespa7:latest /bin/bash -c "/nesfr_vr_ros2_run_release.sh"

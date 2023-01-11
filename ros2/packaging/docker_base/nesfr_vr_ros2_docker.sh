@@ -36,7 +36,7 @@ docker pull $RELEASE_DOCKER_IMAGE
 #    --device-cgroup-rule='c 81:* rmw' \ # v4l2
 #    --device-cgroup-rule='c 116:* rmw' \ # USB Sound Card: Creative Sound_BlasterX_G1
 #
-docker run -it --rm --net=host --runtime nvidia \
+docker run --rm --net=host --runtime nvidia \
     -e DISPLAY=$DISPLAY \
     -v /tmp/.X11-unix/:/tmp/.X11-unix  \
     --device /dev/bus/usb \

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#
+# references
+#  - https://ivanitlearning.wordpress.com/2019/10/27/writing-your-own-deb-package/
+#
+echo ">>> postinst"
+set -x
+
+# TODO: run as user service like pulseaudio daemon
+#mkdir -p $HOME/.config/systemd/user
+#ln -s -f /usr/local/share/nesfr_vr_ros2_docker/nesfr_vr_ros2_docker.service $HOME/.config/systemd/user/nesfr_vr_ros2_docker.service
+#systemctl --user enable nesfr_vr_ros2_docker.service
+#mkdir -p $HOME/.config/systemd/user
+#ln -s -f /usr/lib/systemd/user/nesfr_vr_ros2_docker.service /etc/systemd/user/default.target.wants/nesfr_vr_ros2_docker.service
+#systemctl --user daemon-reload
+#systemctl --user enable nesfr_vr_ros2_docker.service
+#systemctl --user start  nesfr_vr_ros2_docker.service
+
+ln -s -f /usr/local/share/nesfr_vr_ros2_docker/nesfr_vr_ros2_docker.service /usr/lib/systemd/system/nesfr_vr_ros2_docker.service
+#systemctl daemon-reload
+systemctl enable nesfr_vr_ros2_docker.service
+systemctl start  nesfr_vr_ros2_docker.service
+echo "<<< postinst"

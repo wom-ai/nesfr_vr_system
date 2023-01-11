@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#
+# references
+#  - https://ivanitlearning.wordpress.com/2019/10/27/writing-your-own-deb-package/
+#
+
+echo ">>> prerm"
+# TODO: run as user service like pulseaudio daemon
+#rm /etc/systemd/user/default.target.wants/nesfr_vr_ros2_docker.service
+#systemctl --user stop     nesfr_vr_ros2_docker.service
+#systemctl --user disable  nesfr_vr_ros2_docker.service
+
+rm -f /usr/lib/systemd/system/nesfr_vr_ros2_docker.service
+systemctl stop     nesfr_vr_ros2_docker.service
+systemctl disable  nesfr_vr_ros2_docker.service
+echo "<<< prerm"

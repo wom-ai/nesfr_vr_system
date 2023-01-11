@@ -2,10 +2,15 @@
 # references
 #  - https://www.freedesktop.org/software/systemd/man/systemd.service.html#
 #  - https://unix.stackexchange.com/questions/506347/why-do-most-systemd-examples-contain-wantedby-multi-user-target
-
+#  - https://www.jetbrains.com/help/youtrack/server/run-docker-container-as-service.html
+#
 [Unit]
 Description=NESFR VR Service
 #ConditionPathExists=
+#After=pulseaudio.service docker.service containerd.service
+#Requires=pulseaudio.service docker.service containerd.service
+After=docker.service containerd.service
+Requires=docker.service containerd.service
 
 [Service]
 Type=simple
@@ -26,7 +31,8 @@ Type=simple
 ####################################################################################
 
 ExecStart=/usr/local/bin/nesfr_vr_ros2_docker.sh
-ExecStop=/bin/kill -s TERM $MAINPID
+#ExecStop=/bin/kill -s TERM $MAINPID
+ExecStop=docker stop ros2_rover_release
 #ExecReload=/usr/sbin/sshd -t
 #ExecReload=/bin/kill -HUP $MAINPID
 #KillMode=process
@@ -41,4 +47,3 @@ RestartSec=5s
 #WantedBy=multi-user.target
 #WantedBy=gdm.service
 WantedBy=default.target
-Alias=nesfr_vr_ros2_docker.service

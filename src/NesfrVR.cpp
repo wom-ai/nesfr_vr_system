@@ -43,6 +43,31 @@ static void print_build_info(void)
     printf("<<< %s::%s():%d\n", __FILE__, __FUNCTION__, __LINE__);
 }
 
+static int save_pid(void)
+{
+    const filesystem::path home_dir_path{getenv("HOME")};
+    const filesystem::path pid_dir_path{PID_DIR_PATH};
+    const filesystem::path pid_file_path{home_dir_path/pid_dir_path/"nesfr_vr.pid"};
+
+    LOG_INFO("Trying to write pid on {}", pid_file_path.c_str());
+    if (filesystem::exists(pid_dir_path))
+    {
+        LOG_ERR("Create the dir ({}) first", pid_dir_path.c_str());
+        return -1;
+    }
+
+    std::ofstream os(pid_file_path);
+    if (!os.is_open()) {
+        LOG_ERR("Failed to open {}", pid_file_path.c_str());
+        return -1;
+    }
+
+    os << getpid();
+
+    os.close();
+    return 0;
+}
+
 static int load_hw_config(Json::Value &root)
 {
     const filesystem::path home_dir_path{getenv("HOME")};
@@ -550,6 +575,11 @@ int NesfrVR::run(void)
     printf("Device Name (=hostname): %s\n", hostname);
     printf("=======================================================\n");
 
+    if (save_pid() < 0) {
+        LOG_ERR("Failed to save PID");
+        return -1;
+    }
+
     if (load_hw_config(root) < 0) {
         LOG_ERR("No HW configuration.");
         return -1;
@@ -565,10 +595,10 @@ int NesfrVR::run(void)
         _mainLoop(conn);
         stop();
     } catch (InterruptException &e) {
-        LOG_WARN("Terminated by Interrrupt Signal {}\n", e.what());
+        LOG_WARN("[{}:{}] Terminated by Interrrupt Signal {}\n", __FILE__, __LINE__, e.what());
         stop();
     } catch (TerminationException &e) {
-        LOG_WARN("Terminated by Termination Signal {}\n", e.what());
+        LOG_WARN("[{}:{}] Terminated by Termination Signal {}\n", __FILE__, __LINE__, e.what());
         stop();
     } catch (std::exception &e) {
         LOG_ERR("[ERROR]: %s\n", e.what());
@@ -620,10 +650,10 @@ int main(int argc, char *argv[])
     try {
         ret = nesfrvr.run();
     } catch (InterruptException &e) {
-        LOG_WARN("Terminated by Interrrupt Signal {}\n", e.what());
+        LOG_WARN("[{}:{}] Terminated by Interrrupt Signal {}\n", __FILE__, __LINE__, e.what());
         nesfrvr.stop();
     } catch (TerminationException &e) {
-        LOG_WARN("Terminated by Termination Signal {}\n", e.what());
+        LOG_WARN("[{}:{}] Terminated by Termination Signal {}\n", __FILE__, __LINE__, e.what());
         nesfrvr.stop();
     } catch (std::exception &e) {
         LOG_ERR("[ERROR]: %s\n", e.what());
